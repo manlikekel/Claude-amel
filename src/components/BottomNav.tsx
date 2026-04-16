@@ -12,20 +12,20 @@ export function BottomNav() {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-lg safe-area-pb">
-      <div className="mx-auto flex max-w-lg items-center justify-around py-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 glass-nav safe-area-pb">
+      <div className="mx-auto flex max-w-lg items-center justify-around py-2.5">
         {navItems.map((item) => {
           const isActive = location.pathname === item.to;
           return (
             <Link
               key={item.to}
               to={item.to}
-              className={`flex flex-col items-center gap-0.5 px-4 py-1.5 text-xs transition-colors ${
-                isActive ? "text-primary" : "text-muted-foreground"
+              className={`flex flex-col items-center gap-0.5 px-4 py-1.5 text-xs transition-all ${
+                isActive ? "text-primary scale-105" : "text-muted-foreground"
               }`}
             >
-              <item.icon className="h-5 w-5" />
-              <span>{item.label}</span>
+              <item.icon className={`h-5 w-5 ${isActive ? "drop-shadow-[0_0_6px_oklch(0.78_0.12_80/0.5)]" : ""}`} />
+              <span className="font-medium">{item.label}</span>
             </Link>
           );
         })}

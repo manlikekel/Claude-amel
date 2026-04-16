@@ -78,8 +78,10 @@ function LogEntryPage() {
   );
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <div className="mx-auto max-w-lg px-5 pt-6">
+    <div className="min-h-screen bg-background pb-24 relative overflow-hidden">
+      <div className="pointer-events-none absolute -top-20 right-0 h-48 w-48 rounded-full bg-primary/6 blur-[80px]" />
+
+      <div className="mx-auto max-w-lg px-5 pt-6 relative">
         {/* Header */}
         <div className="mb-6 flex items-center gap-3">
           <Link to="/">
@@ -112,7 +114,7 @@ function LogEntryPage() {
                     <button
                       key={a}
                       type="button"
-                      className="w-full rounded-md px-3 py-2 text-left text-sm text-foreground hover:bg-accent"
+                      className="w-full rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-glass-highlight"
                       onMouseDown={() => {
                         update("aircraft_type", a);
                         setShowAircraftDropdown(false);
@@ -155,7 +157,7 @@ function LogEntryPage() {
                     <button
                       key={a}
                       type="button"
-                      className="w-full rounded-md px-3 py-2 text-left text-sm text-foreground hover:bg-accent"
+                      className="w-full rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-glass-highlight"
                       onMouseDown={() => {
                         update("ata_chapter", a);
                         setAtaSearch("");
@@ -178,7 +180,7 @@ function LogEntryPage() {
                 placeholder="What exactly happened? (EICAS, symptoms, conditions)"
                 onChange={(e) => update("fault_description", e.target.value)}
                 rows={3}
-                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="flex w-full rounded-xl border border-glass-border bg-glass px-3 py-2 text-sm text-foreground backdrop-blur-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
               <Button variant="ghost" size="icon" className="absolute right-1 top-1 text-primary" title="Voice input">
                 <Mic className="h-4 w-4" />
@@ -204,7 +206,7 @@ function LogEntryPage() {
                 {form.symptoms.map((s) => (
                   <span
                     key={s}
-                    className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-medium text-primary"
+                    className="inline-flex items-center gap-1 rounded-full glass-subtle px-2.5 py-0.5 text-xs font-medium text-primary"
                   >
                     {s}
                     <button onClick={() => removeSymptom(s)} className="ml-0.5 text-primary/60 hover:text-primary">
@@ -232,7 +234,7 @@ function LogEntryPage() {
               placeholder="What did you do to fix it?"
               onChange={(e) => update("action_taken", e.target.value)}
               rows={2}
-              className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="flex w-full rounded-xl border border-glass-border bg-glass px-3 py-2 text-sm text-foreground backdrop-blur-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </FieldGroup>
 
@@ -268,10 +270,10 @@ function LogEntryPage() {
             </div>
             <button
               onClick={() => update("is_recurring", !form.is_recurring)}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+              className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-all ${
                 form.is_recurring
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground"
+                  ? "glass border-primary/40 text-primary gold-glow-sm"
+                  : "glass-subtle text-muted-foreground"
               }`}
             >
               <RotateCcw className="h-4 w-4" />

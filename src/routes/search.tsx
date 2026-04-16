@@ -70,8 +70,10 @@ function SearchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <div className="mx-auto max-w-lg px-5 pt-6">
+    <div className="min-h-screen bg-background pb-24 relative overflow-hidden">
+      <div className="pointer-events-none absolute top-20 left-0 h-40 w-40 rounded-full bg-primary/5 blur-[80px]" />
+
+      <div className="mx-auto max-w-lg px-5 pt-6 relative">
         {/* Header */}
         <div className="mb-6 flex items-center gap-3">
           <Link to="/">
@@ -96,7 +98,6 @@ function SearchPage() {
         <AnimatePresence mode="wait">
           {hasSearched && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
-              {/* User's past fixes */}
               <section>
                 <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary">
                   Your Past Fixes
@@ -118,7 +119,6 @@ function SearchPage() {
                 )}
               </section>
 
-              {/* Suggested Causes */}
               {suggestions.causes.length > 0 && (
                 <section>
                   <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary">
@@ -134,7 +134,6 @@ function SearchPage() {
                 </section>
               )}
 
-              {/* Suggested Actions */}
               {suggestions.actions.length > 0 && (
                 <section>
                   <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary">
