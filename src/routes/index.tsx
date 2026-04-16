@@ -29,11 +29,15 @@ function Dashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <div className="mx-auto max-w-lg px-5 pt-12">
+    <div className="min-h-screen bg-background pb-24 relative overflow-hidden">
+      {/* Ambient glow background */}
+      <div className="pointer-events-none absolute -top-32 left-1/2 -translate-x-1/2 h-64 w-96 rounded-full bg-primary/8 blur-[100px]" />
+      <div className="pointer-events-none absolute top-1/3 -right-20 h-48 w-48 rounded-full bg-primary/5 blur-[80px]" />
+
+      <div className="mx-auto max-w-lg px-5 pt-12 relative">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-primary">AMEL</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-primary drop-shadow-[0_0_12px_oklch(0.78_0.12_80/0.3)]">AMEL</h1>
           <p className="text-sm text-muted-foreground">Your engineering memory</p>
         </motion.div>
 
@@ -84,7 +88,7 @@ function Dashboard() {
             Recent Work
           </h2>
           {recent.length === 0 ? (
-            <Card className="flex flex-col items-center justify-center border-dashed p-8 text-center">
+            <Card className="flex flex-col items-center justify-center p-8 text-center">
               <Wrench className="mb-2 h-8 w-8 text-muted-foreground/50" />
               <p className="text-sm text-muted-foreground">No logs yet. Start by logging your first task.</p>
             </Card>
@@ -103,8 +107,8 @@ function Dashboard() {
 
 function StatCard({ icon: Icon, value, label }: { icon: React.ElementType; value: number; label: string }) {
   return (
-    <Card className="flex flex-col items-center p-3">
-      <Icon className="mb-1 h-4 w-4 text-primary" />
+    <Card className="flex flex-col items-center p-4">
+      <Icon className="mb-1.5 h-4 w-4 text-primary" />
       <span className="text-xl font-bold text-foreground">{value}</span>
       <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</span>
     </Card>

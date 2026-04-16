@@ -14,7 +14,28 @@ export interface LogEntry {
   created_at: string;
 }
 
+export interface LicenceEntry {
+  id: string;
+  authority: string;
+  licence_type: string;
+  licence_number: string;
+  ratings: string;
+  issue_date: string;
+  expiry_date: string;
+  remarks: string;
+}
+
+export interface ProfileData {
+  name: string;
+  email: string;
+  phone: string;
+  ame_licence_no: string;
+  address: string;
+}
+
 const STORAGE_KEY = "amel_logs";
+const LICENCE_KEY = "amel_licences";
+const PROFILE_KEY = "amel_profile";
 
 export function getLogs(): LogEntry[] {
   try {
@@ -83,6 +104,43 @@ export function getExperienceData() {
   });
 
   return { byAircraft, byAta, totalJobs: logs.length };
+}
+
+// Licence CRUD
+export function getLicences(): LicenceEntry[] {
+  try {
+    const raw = localStorage.getItem(LICENCE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLicence(entry: Omit<LicenceEntry, "id">): LicenceEntry {
+  const licences = getLicences();
+  const newEntry: LicenceEntry = { ...entry, id: crypto.randomUUID() };
+  licences.push(newEntry);
+  localStorage.setItem(LICENCE_KEY, JSON.stringify(licences));
+  return newEntry;
+}
+
+export function deleteLicence(id: string) {
+  const licences = getLicences().filter((l) => l.id !== id);
+  localStorage.setItem(LICENCE_KEY, JSON.stringify(licences));
+}
+
+// Profile CRUD
+export function getProfile(): ProfileData {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    return raw ? JSON.parse(raw) : { name: "", email: "", phone: "", ame_licence_no: "", address: "" };
+  } catch {
+    return { name: "", email: "", phone: "", ame_licence_no: "", address: "" };
+  }
+}
+
+export function saveProfile(data: ProfileData) {
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(data));
 }
 
 export const AIRCRAFT_TYPES = [
