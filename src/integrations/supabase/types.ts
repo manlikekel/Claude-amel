@@ -279,7 +279,42 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      upsert_aircraft_lookup_cache: {
+        Args: {
+          p_icao24: string
+          p_manufacturer: string
+          p_model: string
+          p_norm: string
+          p_operator: string
+          p_raw: Json
+          p_serial: string
+          p_source: string
+          p_status: string
+          p_type_code: string
+        }
+        Returns: {
+          aircraft_type_code: string | null
+          created_at: string
+          expires_at: string
+          icao24: string | null
+          id: string
+          lookup_source: string | null
+          manufacturer: string | null
+          model: string | null
+          normalized_registration: string
+          operator_name: string | null
+          raw_response: Json | null
+          serial_number: string | null
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "aircraft_lookup_cache"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       [_ in never]: never
