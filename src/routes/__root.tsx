@@ -36,6 +36,12 @@ export const Route = createRootRoute({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { property: "og:title", content: "AMEL – Aircraft Maintenance Engineer Logbook" },
+      { name: "twitter:title", content: "AMEL – Aircraft Maintenance Engineer Logbook" },
+      { property: "og:description", content: "Log, track, and search aircraft maintenance faults intelligently." },
+      { name: "twitter:description", content: "Log, track, and search aircraft maintenance faults intelligently." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/96ff0f88-cdbe-43de-8f09-8241c6cb1831" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/96ff0f88-cdbe-43de-8f09-8241c6cb1831" },
     ],
     links: [
       {
