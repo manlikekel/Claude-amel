@@ -108,15 +108,15 @@ export const lookupAircraft = createServerFn({ method: "POST" })
       try {
         await supabase.rpc("upsert_aircraft_lookup_cache", {
           p_norm: norm,
-          p_model: final.model,
-          p_manufacturer: final.manufacturer,
-          p_type_code: final.aircraft_type_code,
-          p_icao24: final.icao24,
-          p_serial: final.serial_number,
-          p_operator: final.operator_name,
-          p_source: final.source,
+          p_model: final.model ?? "",
+          p_manufacturer: final.manufacturer ?? "",
+          p_type_code: final.aircraft_type_code ?? "",
+          p_icao24: final.icao24 ?? "",
+          p_serial: final.serial_number ?? "",
+          p_operator: final.operator_name ?? "",
+          p_source: final.source ?? "",
           p_status: final.status,
-          p_raw: null,
+          p_raw: null as never,
         });
       } catch (e) {
         console.error("Cache write failed:", e);
