@@ -1,38 +1,32 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { getLogs, getLicences, getProfile, type LogEntry, type LicenceEntry, type ProfileData } from "./store";
+import type { LogEntry, LicenceEntry, ProfileData } from "./data";
 
-export function generateLogbookPDF() {
-  const logs = getLogs();
-  const licences = getLicences();
-  const profile = getProfile();
+interface PDFInput {
+  logs: LogEntry[];
+  licences: LicenceEntry[];
+  profile: ProfileData;
+}
 
+export function generateLogbookPDF({ logs, licences, profile }: PDFInput) {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
 
-  // ===== PAGE 1: COVER =====
   drawCoverPage(doc, profile, pageW, pageH);
-
-  // ===== PAGE 2: LICENCES =====
   doc.addPage("a4", "landscape");
-  drawLicencePage(doc, licences, profile, pageW, pageH);
-
-  // ===== PAGE 3+: LOG ENTRIES =====
+  drawLicencePage(doc, licences, pageW);
   if (logs.length > 0) {
     doc.addPage("a4", "landscape");
-    drawLogPages(doc, logs, profile, pageW, pageH);
+    drawLogPages(doc, logs, profile, pageW);
   }
-
   doc.save("AMEL_Logbook.pdf");
 }
 
 function drawCoverPage(doc: jsPDF, profile: ProfileData, pageW: number, pageH: number) {
-  // Background
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageW, pageH, "F");
 
-  // Logo - simplified aircraft silhouette
   const cx = pageW / 2;
   const cy = pageH / 2 - 30;
 
@@ -40,34 +34,27 @@ function drawCoverPage(doc: jsPDF, profile: ProfileData, pageW: number, pageH: n
   doc.setLineWidth(2);
   doc.circle(cx, cy, 22);
   doc.setLineWidth(1.5);
-  // Wings
   doc.line(cx - 18, cy, cx - 35, cy);
   doc.line(cx + 18, cy, cx + 35, cy);
-  // Tail
   doc.line(cx, cy - 18, cx - 8, cy - 28);
   doc.line(cx, cy - 18, cx + 8, cy - 28);
   doc.line(cx - 8, cy - 28, cx + 8, cy - 28);
-  // Body
   doc.line(cx, cy - 18, cx, cy + 22);
 
-  // Title
   doc.setFont("helvetica", "bold");
   doc.setFontSize(32);
   doc.setTextColor(20, 20, 20);
   doc.text("AMEL LOGBOOK", cx, cy + 42, { align: "center" });
 
-  // Subtitle
   doc.setFontSize(14);
   doc.setFont("helvetica", "normal");
   doc.text("Aircraft Maintenance Engineer's Work Record", cx, cy + 54, { align: "center" });
 
-  // Owner info
   if (profile.name) {
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
     doc.text(profile.name, cx, cy + 72, { align: "center" });
   }
-
   const contactParts: string[] = [];
   if (profile.email) contactParts.push(`email: ${profile.email}`);
   if (profile.phone) contactParts.push(`phone: ${profile.phone}`);
@@ -80,7 +67,6 @@ function drawCoverPage(doc: jsPDF, profile: ProfileData, pageW: number, pageH: n
     doc.setFontSize(10);
     doc.text(profile.address, cx, cy + 86, { align: "center" });
   }
-
   if (profile.ame_licence_no) {
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
@@ -88,12 +74,11 @@ function drawCoverPage(doc: jsPDF, profile: ProfileData, pageW: number, pageH: n
   }
 }
 
-function drawLicencePage(doc: jsPDF, licences: LicenceEntry[], _profile: ProfileData, pageW: number, _pageH: number) {
+function drawLicencePage(doc: jsPDF, licences: LicenceEntry[], pageW: number) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
   doc.setTextColor(20, 20, 20);
   doc.text("Licences & Ratings", 15, 20);
-
   doc.setDrawColor(180, 140, 60);
   doc.setLineWidth(0.8);
   doc.line(15, 23, pageW - 15, 23);
@@ -109,15 +94,7 @@ function drawLicencePage(doc: jsPDF, licences: LicenceEntry[], _profile: Profile
   autoTable(doc, {
     startY: 28,
     head: [["Authority", "Type", "Licence No.", "Ratings", "Issue Date", "Expiry Date", "Remarks"]],
-    body: licences.map((l) => [
-      l.authority,
-      l.licence_type,
-      l.licence_number,
-      l.ratings,
-      l.issue_date,
-      l.expiry_date,
-      l.remarks,
-    ]),
+    body: licences.map((l) => [l.authority, l.licence_type, l.licence_number, l.ratings, l.issue_date, l.expiry_date, l.remarks]),
     styles: { fontSize: 9, cellPadding: 3, textColor: [20, 20, 20], lineColor: [200, 200, 200], lineWidth: 0.3 },
     headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: "bold" },
     alternateRowStyles: { fillColor: [248, 248, 248] },
@@ -125,15 +102,12 @@ function drawLicencePage(doc: jsPDF, licences: LicenceEntry[], _profile: Profile
   });
 }
 
-function drawLogPages(doc: jsPDF, logs: LogEntry[], profile: ProfileData, pageW: number, _pageH: number) {
-  // Header text
+function drawLogPages(doc: jsPDF, logs: LogEntry[], profile: ProfileData, pageW: number) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
   doc.setTextColor(20, 20, 20);
-  const headerLeft = `LOGBOOK OWNER: ${profile.name || "_______________"}`;
-  const headerRight = `AME LICENCE NO: ${profile.ame_licence_no || "___________"}`;
-  doc.text(headerLeft, 15, 12);
-  doc.text(headerRight, pageW - 15, 12, { align: "right" });
+  doc.text(`LOGBOOK OWNER: ${profile.name || "_______________"}`, 15, 12);
+  doc.text(`AME LICENCE NO: ${profile.ame_licence_no || "___________"}`, pageW - 15, 12, { align: "right" });
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
@@ -142,15 +116,8 @@ function drawLogPages(doc: jsPDF, logs: LogEntry[], profile: ProfileData, pageW:
   autoTable(doc, {
     startY: 16,
     head: [[
-      "Date\n& Time",
-      "Type of\nAircraft",
-      "Aircraft\nRegn./Engine\nS.No./Component",
-      "ATA\nChapter",
-      "Maintenance Task",
-      "Type of\nMaint.",
-      "Type of\nActivity",
-      "Duration\nin Hrs.",
-      "Recurring",
+      "Date\n& Time", "Type of\nAircraft", "Aircraft\nRegn./Engine\nS.No./Component",
+      "ATA\nChapter", "Maintenance Task", "Type of\nMaint.", "Type of\nActivity", "Duration\nin Hrs.", "Recurring",
     ]],
     body: logs.map((l) => {
       const date = new Date(l.created_at);
@@ -158,34 +125,21 @@ function drawLogPages(doc: jsPDF, logs: LogEntry[], profile: ProfileData, pageW:
       const ata = l.ata_chapter.split(" ")[0];
       const task = l.fault_description + (l.action_taken ? `\n→ ${l.action_taken}` : "");
       return [
-        dateStr,
-        l.aircraft_type,
-        l.registration,
-        ata,
-        task,
+        dateStr, l.aircraft_model || "—", l.registration || "—", ata, task,
         l.root_cause ? "Corrective" : "Routine",
         l.tools_used || "-",
-        l.time_spent.toString(),
-        l.is_recurring ? "Yes" : "No",
+        String(l.time_spent_hours), l.is_recurring ? "Yes" : "No",
       ];
     }),
     styles: { fontSize: 7.5, cellPadding: 2, textColor: [20, 20, 20], lineColor: [180, 180, 180], lineWidth: 0.3, overflow: "linebreak" },
     headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 7 },
     alternateRowStyles: { fillColor: [248, 248, 248] },
     columnStyles: {
-      0: { cellWidth: 22 },
-      1: { cellWidth: 22 },
-      2: { cellWidth: 30 },
-      3: { cellWidth: 14 },
-      4: { cellWidth: "auto" },
-      5: { cellWidth: 18 },
-      6: { cellWidth: 25 },
-      7: { cellWidth: 16 },
-      8: { cellWidth: 16 },
+      0: { cellWidth: 22 }, 1: { cellWidth: 22 }, 2: { cellWidth: 30 }, 3: { cellWidth: 14 },
+      4: { cellWidth: "auto" }, 5: { cellWidth: 18 }, 6: { cellWidth: 25 }, 7: { cellWidth: 16 }, 8: { cellWidth: 16 },
     },
     margin: { left: 15, right: 15 },
-    didDrawPage: (data) => {
-      // Page numbers
+    didDrawPage: () => {
       const pageNum = doc.getCurrentPageInfo().pageNumber;
       doc.setFontSize(8);
       doc.setFont("helvetica", "normal");

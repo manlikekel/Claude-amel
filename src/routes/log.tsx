@@ -1,27 +1,39 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useCallback } from "react";
-import { ArrowLeft, Camera, Mic, RotateCcw } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { ArrowLeft, RotateCcw, Loader2, Search as SearchIcon, Trash2, CheckCircle2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { saveLog, AIRCRAFT_TYPES, ATA_CHAPTERS } from "@/lib/store";
+import {
+  saveLog, updateLog, deleteLog, fetchLog,
+  findAircraftByRegistration, upsertAircraftProfile,
+  ATA_CHAPTERS,
+} from "@/lib/data";
+import { lookupAircraft } from "@/lib/aircraft-lookup.functions";
+import { normalizeRegistration, looksLikeRegistration } from "@/lib/aircraft";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/log")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    id: typeof s.id === "string" ? s.id : undefined,
+  }),
   head: () => ({
-    meta: [
-      { title: "New Log Entry – AMEL" },
-      { name: "description", content: "Create a new maintenance log entry." },
-    ],
+    meta: [{ title: "Log Entry – AMEL" }, { name: "description", content: "Create or edit a maintenance log entry." }],
   }),
   component: LogEntryPage,
 });
 
 function LogEntryPage() {
   const navigate = useNavigate();
+  const { id: editId } = Route.useSearch();
+  const isEdit = Boolean(editId);
+
   const [form, setForm] = useState({
-    aircraft_type: "",
+    aircraft_profile_id: null as string | null,
+    aircraft_model: "",
+    manufacturer: "",
     registration: "",
     ata_chapter: "",
     fault_description: "",
@@ -29,19 +41,99 @@ function LogEntryPage() {
     root_cause: "",
     action_taken: "",
     tools_used: "",
-    time_spent: "",
+    time_spent_hours: "",
     is_recurring: false,
   });
   const [symptomInput, setSymptomInput] = useState("");
   const [ataSearch, setAtaSearch] = useState("");
   const [showAtaDropdown, setShowAtaDropdown] = useState(false);
-  const [showAircraftDropdown, setShowAircraftDropdown] = useState(false);
+  const [lookupState, setLookupState] = useState<"idle" | "loading" | "found" | "not_found" | "error">("idle");
+  const [lookupSource, setLookupSource] = useState<string | null>(null);
+  const [loadingEntry, setLoadingEntry] = useState(isEdit);
+  const [saving, setSaving] = useState(false);
+
+  // Load existing log if editing
+  useEffect(() => {
+    if (!editId) return;
+    fetchLog(editId).then((log) => {
+      if (!log) { toast.error("Log not found"); navigate({ to: "/" }); return; }
+      setForm({
+        aircraft_profile_id: log.aircraft_profile_id,
+        aircraft_model: log.aircraft_model,
+        manufacturer: log.manufacturer,
+        registration: log.registration,
+        ata_chapter: log.ata_chapter,
+        fault_description: log.fault_description,
+        symptoms: log.symptoms,
+        root_cause: log.root_cause,
+        action_taken: log.action_taken,
+        tools_used: log.tools_used,
+        time_spent_hours: log.time_spent_hours ? String(log.time_spent_hours) : "",
+        is_recurring: log.is_recurring,
+      });
+      setLoadingEntry(false);
+    });
+  }, [editId, navigate]);
 
   const update = useCallback(
-    (field: string, value: string | boolean | string[]) =>
+    (field: string, value: string | boolean | string[] | null) =>
       setForm((prev) => ({ ...prev, [field]: value })),
     []
   );
+
+  // Aircraft lookup — triggered on blur or button
+  const runLookup = useCallback(async (regRaw: string) => {
+    const reg = regRaw.trim();
+    if (!reg || !looksLikeRegistration(reg)) return;
+    setLookupState("loading");
+    try {
+      // Check our own profile cache first
+      const existing = await findAircraftByRegistration(reg);
+      if (existing) {
+        setForm((p) => ({
+          ...p,
+          aircraft_profile_id: existing.id,
+          aircraft_model: p.aircraft_model || existing.model || "",
+          manufacturer: p.manufacturer || existing.manufacturer || "",
+        }));
+        setLookupSource(existing.lookup_source);
+        setLookupState("found");
+        return;
+      }
+
+      const res = await lookupAircraft({ data: { registration: reg } });
+      if (res.status === "found") {
+        setForm((p) => ({
+          ...p,
+          aircraft_model: p.aircraft_model || res.model || "",
+          manufacturer: p.manufacturer || res.manufacturer || "",
+        }));
+        setLookupSource(res.source);
+        setLookupState("found");
+
+        // Persist a profile so we don't re-fetch
+        try {
+          const prof = await upsertAircraftProfile({
+            registration: reg,
+            model: res.model,
+            manufacturer: res.manufacturer,
+            aircraft_type_code: res.aircraft_type_code,
+            icao24: res.icao24,
+            serial_number: res.serial_number,
+            operator_name: res.operator_name,
+            lookup_source: res.source,
+            lookup_status: res.status,
+          });
+          setForm((p) => ({ ...p, aircraft_profile_id: prof.id }));
+        } catch (e) { console.error(e); }
+      } else {
+        setLookupState("not_found");
+      }
+    } catch (e) {
+      console.error(e);
+      setLookupState("error");
+    }
+  }, []);
 
   const addSymptom = () => {
     const tag = symptomInput.trim();
@@ -51,183 +143,198 @@ function LogEntryPage() {
     }
   };
 
-  const removeSymptom = (s: string) => {
-    update("symptoms", form.symptoms.filter((x) => x !== s));
+  const removeSymptom = (s: string) => update("symptoms", form.symptoms.filter((x) => x !== s));
+
+  const handleSave = async () => {
+    if (!form.fault_description) { toast.error("Add a fault description"); return; }
+    setSaving(true);
+    try {
+      const payload = {
+        aircraft_profile_id: form.aircraft_profile_id,
+        registration: form.registration ? normalizeRegistration(form.registration) : "",
+        aircraft_model: form.aircraft_model,
+        manufacturer: form.manufacturer,
+        ata_chapter: form.ata_chapter,
+        fault_description: form.fault_description,
+        symptoms: form.symptoms,
+        root_cause: form.root_cause,
+        action_taken: form.action_taken,
+        tools_used: form.tools_used,
+        time_spent_hours: parseFloat(form.time_spent_hours) || 0,
+        image_urls: [] as string[],
+        voice_note_url: null as string | null,
+        is_recurring: form.is_recurring,
+      };
+      if (isEdit && editId) {
+        await updateLog(editId, payload);
+        toast.success("Log updated");
+      } else {
+        await saveLog(payload);
+        toast.success("Log saved");
+      }
+      navigate({ to: "/" });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to save");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleSave = () => {
-    if (!form.aircraft_type || !form.fault_description) return;
-    saveLog({
-      aircraft_type: form.aircraft_type,
-      registration: form.registration,
-      ata_chapter: form.ata_chapter,
-      fault_description: form.fault_description,
-      symptoms: form.symptoms,
-      root_cause: form.root_cause,
-      action_taken: form.action_taken,
-      tools_used: form.tools_used,
-      time_spent: parseFloat(form.time_spent) || 0,
-      images: [],
-      is_recurring: form.is_recurring,
-    });
-    navigate({ to: "/" });
+  const handleDelete = async () => {
+    if (!editId || !confirm("Delete this log entry?")) return;
+    try {
+      await deleteLog(editId);
+      toast.success("Log deleted");
+      navigate({ to: "/" });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to delete");
+    }
   };
 
-  const filteredAta = ATA_CHAPTERS.filter((a) =>
-    a.toLowerCase().includes(ataSearch.toLowerCase())
-  );
+  const filteredAta = ATA_CHAPTERS.filter((a) => a.toLowerCase().includes(ataSearch.toLowerCase()));
+
+  if (loadingEntry) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background pb-24 relative overflow-hidden">
+    <div className="min-h-screen bg-background pb-32 relative overflow-hidden">
       <div className="pointer-events-none absolute -top-20 right-0 h-48 w-48 rounded-full bg-primary/6 blur-[80px]" />
 
       <div className="mx-auto max-w-lg px-5 pt-6 relative">
-        {/* Header */}
         <div className="mb-6 flex items-center gap-3">
           <Link to="/">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+            <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
           </Link>
-          <h1 className="text-xl font-bold text-foreground">New Log Entry</h1>
+          <h1 className="text-xl font-bold text-foreground">{isEdit ? "Edit Log Entry" : "New Log Entry"}</h1>
+          {isEdit && (
+            <Button variant="ghost" size="icon" className="ml-auto text-destructive" onClick={handleDelete}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4">
-          {/* Aircraft Type */}
-          <FieldGroup label="Aircraft Type">
-            <div className="relative">
+          {/* Registration FIRST — drives lookup */}
+          <FieldGroup label="Registration / Tail Number">
+            <div className="flex gap-2">
               <Input
-                value={form.aircraft_type}
-                placeholder="Select aircraft"
-                onFocus={() => setShowAircraftDropdown(true)}
-                onChange={(e) => {
-                  update("aircraft_type", e.target.value);
-                  setShowAircraftDropdown(true);
-                }}
-                onBlur={() => setTimeout(() => setShowAircraftDropdown(false), 150)}
+                value={form.registration}
+                placeholder="e.g. 5N-XEL"
+                onChange={(e) => { update("registration", e.target.value.toUpperCase()); setLookupState("idle"); }}
+                onBlur={(e) => runLookup(e.target.value)}
+                className="uppercase"
               />
-              {showAircraftDropdown && (
-                <Card className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto p-1">
-                  {AIRCRAFT_TYPES.filter((a) =>
-                    a.toLowerCase().includes(form.aircraft_type.toLowerCase())
-                  ).map((a) => (
-                    <button
-                      key={a}
-                      type="button"
-                      className="w-full rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-glass-highlight"
-                      onMouseDown={() => {
-                        update("aircraft_type", a);
-                        setShowAircraftDropdown(false);
-                      }}
-                    >
-                      {a}
-                    </button>
-                  ))}
-                </Card>
-              )}
+              <Button
+                variant="action"
+                size="default"
+                onClick={() => runLookup(form.registration)}
+                disabled={!form.registration || lookupState === "loading"}
+                title="Search aircraft database"
+              >
+                {lookupState === "loading" ? <Loader2 className="h-4 w-4 animate-spin" /> : <SearchIcon className="h-4 w-4" />}
+              </Button>
             </div>
+            {lookupState === "loading" && (
+              <p className="mt-1.5 text-[11px] text-muted-foreground flex items-center gap-1.5">
+                <Loader2 className="h-3 w-3 animate-spin" /> Looking up aircraft…
+              </p>
+            )}
+            {lookupState === "found" && (
+              <p className="mt-1.5 text-[11px] text-primary flex items-center gap-1.5">
+                <CheckCircle2 className="h-3 w-3" /> Auto-filled from {lookupSource ?? "database"}
+              </p>
+            )}
+            {lookupState === "not_found" && (
+              <p className="mt-1.5 text-[11px] text-muted-foreground">No database match. Enter model manually.</p>
+            )}
+            {lookupState === "error" && (
+              <p className="mt-1.5 text-[11px] text-muted-foreground">Lookup failed. Enter model manually.</p>
+            )}
           </FieldGroup>
 
-          {/* Registration */}
-          <FieldGroup label="Registration">
+          <FieldGroup label="Aircraft Model">
             <Input
-              value={form.registration}
-              placeholder="e.g. 5N-XXX"
-              onChange={(e) => update("registration", e.target.value)}
+              value={form.aircraft_model}
+              placeholder="e.g. CRJ200"
+              onChange={(e) => update("aircraft_model", e.target.value)}
             />
           </FieldGroup>
 
-          {/* ATA Chapter */}
+          <FieldGroup label="Manufacturer (optional)">
+            <Input
+              value={form.manufacturer}
+              placeholder="e.g. Bombardier"
+              onChange={(e) => update("manufacturer", e.target.value)}
+            />
+          </FieldGroup>
+
           <FieldGroup label="ATA Chapter">
             <div className="relative">
               <Input
                 value={form.ata_chapter || ataSearch}
                 placeholder="e.g. 21 – Air Conditioning"
                 onFocus={() => setShowAtaDropdown(true)}
-                onChange={(e) => {
-                  setAtaSearch(e.target.value);
-                  update("ata_chapter", "");
-                  setShowAtaDropdown(true);
-                }}
+                onChange={(e) => { setAtaSearch(e.target.value); update("ata_chapter", ""); setShowAtaDropdown(true); }}
                 onBlur={() => setTimeout(() => setShowAtaDropdown(false), 150)}
               />
               {showAtaDropdown && filteredAta.length > 0 && (
-                <Card className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto p-1">
+                <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-xl surface-opaque p-1">
                   {filteredAta.map((a) => (
                     <button
                       key={a}
                       type="button"
-                      className="w-full rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-glass-highlight"
-                      onMouseDown={() => {
-                        update("ata_chapter", a);
-                        setAtaSearch("");
-                        setShowAtaDropdown(false);
-                      }}
+                      className="w-full rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-accent"
+                      onMouseDown={() => { update("ata_chapter", a); setAtaSearch(""); setShowAtaDropdown(false); }}
                     >
                       {a}
                     </button>
                   ))}
-                </Card>
+                </div>
               )}
             </div>
           </FieldGroup>
 
-          {/* Fault Description */}
           <FieldGroup label="Fault Description">
-            <div className="relative">
-              <textarea
-                value={form.fault_description}
-                placeholder="What exactly happened? (EICAS, symptoms, conditions)"
-                onChange={(e) => update("fault_description", e.target.value)}
-                rows={3}
-                className="flex w-full rounded-xl border border-glass-border bg-glass px-3 py-2 text-sm text-foreground backdrop-blur-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              />
-              <Button variant="ghost" size="icon" className="absolute right-1 top-1 text-primary" title="Voice input">
-                <Mic className="h-4 w-4" />
-              </Button>
-            </div>
+            <textarea
+              value={form.fault_description}
+              placeholder="What exactly happened? (EICAS, symptoms, conditions)"
+              onChange={(e) => update("fault_description", e.target.value)}
+              rows={3}
+              className="flex w-full rounded-xl border border-glass-border bg-glass px-3 py-2 text-sm text-foreground backdrop-blur-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
           </FieldGroup>
 
-          {/* Symptoms */}
           <FieldGroup label="Symptoms">
             <div className="flex gap-2">
               <Input
                 value={symptomInput}
-                placeholder="Add quick tags (low pressure, high EGT…)"
+                placeholder="Add tags (low pressure, high EGT…)"
                 onChange={(e) => setSymptomInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSymptom())}
               />
-              <Button variant="secondary" size="default" onClick={addSymptom}>
-                Add
-              </Button>
+              <Button variant="secondary" size="default" onClick={addSymptom}>Add</Button>
             </div>
             {form.symptoms.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {form.symptoms.map((s) => (
-                  <span
-                    key={s}
-                    className="inline-flex items-center gap-1 rounded-full glass-subtle px-2.5 py-0.5 text-xs font-medium text-primary"
-                  >
+                  <span key={s} className="inline-flex items-center gap-1 rounded-full glass-subtle px-2.5 py-0.5 text-xs font-medium text-primary">
                     {s}
-                    <button onClick={() => removeSymptom(s)} className="ml-0.5 text-primary/60 hover:text-primary">
-                      ×
-                    </button>
+                    <button onClick={() => removeSymptom(s)} className="ml-0.5 text-primary/60 hover:text-primary">×</button>
                   </span>
                 ))}
               </div>
             )}
           </FieldGroup>
 
-          {/* Root Cause */}
           <FieldGroup label="Root Cause">
-            <Input
-              value={form.root_cause}
-              placeholder="What was the actual issue?"
-              onChange={(e) => update("root_cause", e.target.value)}
-            />
+            <Input value={form.root_cause} placeholder="What was the actual issue?" onChange={(e) => update("root_cause", e.target.value)} />
           </FieldGroup>
 
-          {/* Action Taken */}
           <FieldGroup label="Action Taken">
             <textarea
               value={form.action_taken}
@@ -238,58 +345,33 @@ function LogEntryPage() {
             />
           </FieldGroup>
 
-          {/* Tools Used */}
           <FieldGroup label="Tools / Manual Used">
-            <Input
-              value={form.tools_used}
-              placeholder="Manual, AMM ref, tools used"
-              onChange={(e) => update("tools_used", e.target.value)}
-            />
+            <Input value={form.tools_used} placeholder="Manual, AMM ref, tools used" onChange={(e) => update("tools_used", e.target.value)} />
           </FieldGroup>
 
-          {/* Time Spent */}
           <FieldGroup label="Time Spent (hours)">
-            <Input
-              value={form.time_spent}
-              placeholder="e.g. 1.5"
-              type="number"
-              step="0.5"
-              onChange={(e) => update("time_spent", e.target.value)}
-            />
+            <Input value={form.time_spent_hours} placeholder="e.g. 1.5" type="number" step="0.5" onChange={(e) => update("time_spent_hours", e.target.value)} />
           </FieldGroup>
 
-          {/* Extras */}
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex gap-2">
-              <Button variant="action" size="icon-lg" title="Add Photo">
-                <Camera className="h-5 w-5" />
-              </Button>
-              <Button variant="action" size="icon-lg" title="Voice Input">
-                <Mic className="h-5 w-5" />
-              </Button>
-            </div>
-            <button
-              onClick={() => update("is_recurring", !form.is_recurring)}
-              className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-all ${
-                form.is_recurring
-                  ? "glass border-primary/40 text-primary gold-glow-sm"
-                  : "glass-subtle text-muted-foreground"
-              }`}
-            >
-              <RotateCcw className="h-4 w-4" />
-              Recurring
-            </button>
-          </div>
+          <button
+            onClick={() => update("is_recurring", !form.is_recurring)}
+            className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm transition-all ${
+              form.is_recurring ? "glass border-primary/40 text-primary gold-glow-sm" : "glass-subtle text-muted-foreground"
+            }`}
+          >
+            <RotateCcw className="h-4 w-4" />
+            Mark as Recurring
+          </button>
 
-          {/* Save */}
           <Button
             variant="hero"
             size="xl"
             className="mt-2 w-full"
             onClick={handleSave}
-            disabled={!form.aircraft_type || !form.fault_description}
+            disabled={saving || !form.fault_description}
           >
-            Save Log
+            {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            {isEdit ? "Update Log" : "Save Log"}
           </Button>
         </motion.div>
       </div>
@@ -300,9 +382,7 @@ function LogEntryPage() {
 function FieldGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {label}
-      </label>
+      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</label>
       {children}
     </div>
   );
