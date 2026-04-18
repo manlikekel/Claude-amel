@@ -117,28 +117,88 @@ function drawLogPages(doc: jsPDF, logs: LogEntry[], profile: ProfileData, pageW:
     startY: 16,
     head: [[
       "Date\n& Time", "Type of\nAircraft", "Aircraft\nRegn./Engine\nS.No./Component",
-      "ATA\nChapter", "Maintenance Task", "Type of\nMaint.", "Type of\nActivity", "Duration\nin Hrs.", "Recurring",
+      "ATA\nChapter", "Maintenance Task", "Type of\nMaint.", "Type of\nActivity", "Duration\nin Hrs.", "Certifier Sign / Stamp",
     ]],
     body: logs.map((l) => {
       const date = new Date(l.created_at);
       const dateStr = `${date.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" })}\n${date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
       const ata = l.ata_chapter.split(" ")[0];
-      const task = l.fault_description + (l.action_taken ? `\n→ ${l.action_taken}` : "");
+      const task = l.fault_description + (l.action_taken ? `\n\nAction: ${l.action_taken}` : "");
       return [
         dateStr, l.aircraft_model || "—", l.registration || "—", ata, task,
         l.root_cause ? "Corrective" : "Routine",
         l.tools_used || "-",
-        String(l.time_spent_hours), l.is_recurring ? "Yes" : "No",
+        String(l.time_spent_hours), "",
       ];
     }),
-    styles: { fontSize: 7.5, cellPadding: 2, textColor: [20, 20, 20], lineColor: [180, 180, 180], lineWidth: 0.3, overflow: "linebreak" },
-    headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 7 },
+    styles: {
+      fontSize: 8,
+      cellPadding: 2.5,
+      textColor: [20, 20, 20],
+      lineColor: [120, 120, 120],
+      lineWidth: 0.3,
+      overflow: "linebreak",
+      valign: "middle",
+      halign: "center",
+      minCellHeight: 28,
+    },
+    headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 7.5, halign: "center", valign: "middle" },
     alternateRowStyles: { fillColor: [248, 248, 248] },
     columnStyles: {
-      0: { cellWidth: 22 }, 1: { cellWidth: 22 }, 2: { cellWidth: 30 }, 3: { cellWidth: 14 },
-      4: { cellWidth: "auto" }, 5: { cellWidth: 18 }, 6: { cellWidth: 25 }, 7: { cellWidth: 16 }, 8: { cellWidth: 16 },
+      0: { cellWidth: 22 },
+      1: { cellWidth: 24 },
+      2: { cellWidth: 30 },
+      3: { cellWidth: 14 },
+      4: { cellWidth: "auto", halign: "left", valign: "middle", cellPadding: { top: 3, bottom: 3, left: 4, right: 4 } },
+      5: { cellWidth: 20 },
+      6: { cellWidth: 22 },
+      7: { cellWidth: 16 },
+      8: { cellWidth: 42 },
     },
-    margin: { left: 15, right: 15 },
+    margin: { left: 10, right: 10 },
+    didParseCell: (data) => {
+      // Justify long maintenance-task text; center short single-line entries.
+      if (data.section === "body" && data.column.index === 4) {
+        const raw = String(data.cell.raw ?? "");
+        if (raw.length > 60) {
+          data.cell.styles.halign = "justify";
+        } else {
+          data.cell.styles.halign = "center";
+        }
+      }
+    },
+    didDrawCell: (data) => {
+      // Render the Certifier Sign / Stamp cell content manually so it looks like a real sign-off block.
+      if (data.section === "body" && data.column.index === 8) {
+        const { x, y, width, height } = data.cell;
+        const padding = 2;
+        // Signature line (upper third)
+        const sigY = y + height * 0.42;
+        doc.setDrawColor(80, 80, 80);
+        doc.setLineWidth(0.3);
+        doc.line(x + padding + 1, sigY, x + width - padding - 1, sigY);
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(6.5);
+        doc.setTextColor(110, 110, 110);
+        doc.text("Name / Signature", x + width / 2, sigY + 3, { align: "center" });
+
+        // Stamp box (lower portion)
+        const boxW = Math.min(28, width - padding * 2 - 2);
+        const boxH = Math.min(12, height - (sigY - y) - 6);
+        if (boxH > 4) {
+          const boxX = x + (width - boxW) / 2;
+          const boxY = sigY + 5;
+          doc.setDrawColor(150, 150, 150);
+          doc.setLineWidth(0.4);
+          doc.rect(boxX, boxY, boxW, boxH);
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(6);
+          doc.setTextColor(140, 140, 140);
+          doc.text("STAMP", boxX + boxW / 2, boxY + boxH / 2 + 1.5, { align: "center" });
+        }
+        doc.setTextColor(20, 20, 20);
+      }
+    },
     didDrawPage: () => {
       const pageNum = doc.getCurrentPageInfo().pageNumber;
       doc.setFontSize(8);
