@@ -151,6 +151,19 @@ export async function saveLicence(l: Omit<LicenceEntry, "id">): Promise<void> {
   if (error) throw error;
 }
 
+export async function updateLicence(id: string, l: Omit<LicenceEntry, "id">): Promise<void> {
+  const { error } = await supabase.from("licences").update({
+    authority: l.authority,
+    licence_type: l.licence_type,
+    licence_number: l.licence_number,
+    ratings: l.ratings,
+    issue_date: l.issue_date || null,
+    expiry_date: l.expiry_date || null,
+    remarks: l.remarks,
+  }).eq("id", id);
+  if (error) throw error;
+}
+
 export async function deleteLicence(id: string): Promise<void> {
   const { error } = await supabase.from("licences").delete().eq("id", id);
   if (error) throw error;
@@ -263,6 +276,13 @@ export async function fetchRecentLogs(limit = 5): Promise<LogEntry[]> {
   return (data ?? []).map(rowToLog);
 }
 
+export async function fetchLog(id: string): Promise<LogEntry | null> {
+  const { data, error } = await supabase
+    .from("maintenance_logs").select("*").eq("id", id).maybeSingle();
+  if (error) { console.error(error); return null; }
+  return data ? rowToLog(data) : null;
+}
+
 export async function saveLog(input: Omit<LogEntry, "id" | "created_at">): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not signed in");
@@ -283,6 +303,31 @@ export async function saveLog(input: Omit<LogEntry, "id" | "created_at">): Promi
     image_urls: input.image_urls,
     voice_note_url: input.voice_note_url,
   });
+  if (error) throw error;
+}
+
+export async function updateLog(id: string, input: Omit<LogEntry, "id" | "created_at">): Promise<void> {
+  const { error } = await supabase.from("maintenance_logs").update({
+    aircraft_profile_id: input.aircraft_profile_id,
+    registration: input.registration,
+    aircraft_model: input.aircraft_model,
+    manufacturer: input.manufacturer,
+    ata_chapter: input.ata_chapter,
+    fault_description: input.fault_description,
+    symptoms: input.symptoms,
+    root_cause: input.root_cause,
+    action_taken: input.action_taken,
+    tools_used: input.tools_used,
+    time_spent_hours: input.time_spent_hours,
+    is_recurring: input.is_recurring,
+    image_urls: input.image_urls,
+    voice_note_url: input.voice_note_url,
+  }).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteLog(id: string): Promise<void> {
+  const { error } = await supabase.from("maintenance_logs").delete().eq("id", id);
   if (error) throw error;
 }
 
