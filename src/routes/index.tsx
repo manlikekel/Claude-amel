@@ -1,9 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Link } from "@tanstack/react-router";
-import { PlusCircle, Search, BarChart3, Wrench, Clock, Plane } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { PlusCircle, Search, BarChart3, Wrench, Clock, Plane, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getRecentLogs, getStats, type LogEntry } from "@/lib/store";
+import { fetchRecentLogs, computeStats, type LogEntry, type Stats } from "@/lib/data";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
@@ -12,8 +11,6 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "AMEL – Aircraft Maintenance Engineer Logbook" },
       { name: "description", content: "Log, track, and search aircraft maintenance faults intelligently." },
-      { property: "og:title", content: "AMEL – Aircraft Maintenance Engineer Logbook" },
-      { property: "og:description", content: "Your engineering memory for aircraft maintenance." },
     ],
   }),
   component: Dashboard,
@@ -21,32 +18,33 @@ export const Route = createFileRoute("/")({
 
 function Dashboard() {
   const [recent, setRecent] = useState<LogEntry[]>([]);
-  const [stats, setStats] = useState({ totalLogs: 0, aircraftTypes: 0, totalHours: 0, ataChapters: 0 });
+  const [stats, setStats] = useState<Stats>({ totalLogs: 0, aircraftTypes: 0, totalHours: 0, ataChapters: 0 });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setRecent(getRecentLogs(5));
-    setStats(getStats());
+    Promise.all([fetchRecentLogs(5), computeStats()]).then(([r, s]) => {
+      setRecent(r);
+      setStats(s);
+      setLoading(false);
+    });
   }, []);
 
   return (
-    <div className="min-h-screen bg-background pb-24 relative overflow-hidden">
-      {/* Ambient glow background */}
+    <div className="min-h-screen bg-background pb-32 relative overflow-hidden">
       <div className="pointer-events-none absolute -top-32 left-1/2 -translate-x-1/2 h-64 w-96 rounded-full bg-primary/8 blur-[100px]" />
       <div className="pointer-events-none absolute top-1/3 -right-20 h-48 w-48 rounded-full bg-primary/5 blur-[80px]" />
 
-      <div className="mx-auto max-w-lg px-5 pt-12 relative">
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+      <div className="mx-auto max-w-lg px-5 pt-10 relative">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-7">
           <h1 className="text-3xl font-bold tracking-tight text-primary drop-shadow-[0_0_12px_oklch(0.78_0.12_80/0.3)]">AMEL</h1>
           <p className="text-sm text-muted-foreground">Your engineering memory</p>
         </motion.div>
 
-        {/* Action Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mb-8 flex flex-col gap-3"
+          className="mb-7 flex flex-col gap-3"
         >
           <Button variant="hero" size="xl" className="w-full justify-start gap-3" asChild>
             <Link to="/log">
@@ -70,27 +68,29 @@ function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Stats */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="mb-8 grid grid-cols-3 gap-3"
+          className="mb-7 grid grid-cols-3 gap-3"
         >
           <StatCard icon={Wrench} value={stats.totalLogs} label="Jobs" />
           <StatCard icon={Plane} value={stats.aircraftTypes} label="Aircraft" />
           <StatCard icon={Clock} value={stats.totalHours} label="Hours" />
         </motion.div>
 
-        {/* Recent Work */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Recent Work
           </h2>
-          {recent.length === 0 ? (
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            </div>
+          ) : recent.length === 0 ? (
             <Card className="flex flex-col items-center justify-center p-8 text-center">
               <Wrench className="mb-2 h-8 w-8 text-muted-foreground/50" />
-              <p className="text-sm text-muted-foreground">No logs yet. Start by logging your first task.</p>
+              <p className="text-sm text-muted-foreground">No logs yet. Tap "Log New Task" above.</p>
             </Card>
           ) : (
             <div className="flex flex-col gap-2">
@@ -116,25 +116,26 @@ function StatCard({ icon: Icon, value, label }: { icon: React.ElementType; value
 }
 
 function LogCard({ log }: { log: LogEntry }) {
-  const ata = log.ata_chapter.split(" – ")[0] || log.ata_chapter;
-  const hours = log.time_spent ? `${log.time_spent}h` : "";
-
+  const ata = log.ata_chapter.split(" – ")[0] || log.ata_chapter || "—";
+  const hours = log.time_spent_hours ? `${log.time_spent_hours}h` : "";
   return (
-    <Card className="p-3">
-      <div className="mb-1 flex items-center justify-between">
-        <span className="text-xs font-semibold text-primary">
-          {log.aircraft_type} · ATA {ata}
-        </span>
-        {hours && (
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-            {log.is_recurring ? "Recurring · " : ""}{hours}
+    <Link to="/log" search={{ id: log.id }}>
+      <Card className="p-3 hover:border-primary/40 transition-colors">
+        <div className="mb-1 flex items-center justify-between">
+          <span className="text-xs font-semibold text-primary">
+            {log.aircraft_model || log.registration || "Aircraft"} · ATA {ata}
           </span>
+          {hours && (
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              {log.is_recurring ? "Recurring · " : ""}{hours}
+            </span>
+          )}
+        </div>
+        <p className="line-clamp-1 text-sm text-foreground">{log.fault_description}</p>
+        {log.action_taken && (
+          <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">✓ {log.action_taken}</p>
         )}
-      </div>
-      <p className="line-clamp-1 text-sm text-foreground">{log.fault_description}</p>
-      {log.action_taken && (
-        <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">✓ {log.action_taken}</p>
-      )}
-    </Card>
+      </Card>
+    </Link>
   );
 }
