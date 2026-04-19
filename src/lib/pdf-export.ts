@@ -123,7 +123,21 @@ function drawLogPages(doc: jsPDF, logs: LogEntry[], profile: ProfileData, pageW:
       const date = new Date(l.created_at);
       const dateStr = `${date.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" })}\n${date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
       const ata = l.ata_chapter.split(" ")[0];
-      const task = l.fault_description + (l.action_taken ? `\n\nAction: ${l.action_taken}` : "");
+      // Build a personal, narrative-style task description.
+      const parts: string[] = [];
+      if (l.fault_description) {
+        parts.push(`Reported: ${l.fault_description.trim()}`);
+      }
+      if (l.symptoms && l.symptoms.length > 0) {
+        parts.push(`Symptoms observed: ${l.symptoms.join(", ")}.`);
+      }
+      if (l.root_cause) {
+        parts.push(`Root cause identified as ${l.root_cause.trim()}.`);
+      }
+      if (l.action_taken) {
+        parts.push(`I ${l.action_taken.trim().replace(/^[A-Z]/, (c) => c.toLowerCase())}.`);
+      }
+      const task = parts.join(" ");
       return [
         dateStr, l.aircraft_model || "—", l.registration || "—", ata, task,
         l.root_cause ? "Corrective" : "Routine",
@@ -132,15 +146,15 @@ function drawLogPages(doc: jsPDF, logs: LogEntry[], profile: ProfileData, pageW:
       ];
     }),
     styles: {
-      fontSize: 8,
-      cellPadding: 2.5,
+      fontSize: 8.5,
+      cellPadding: 3,
       textColor: [20, 20, 20],
       lineColor: [120, 120, 120],
       lineWidth: 0.3,
       overflow: "linebreak",
       valign: "middle",
       halign: "center",
-      minCellHeight: 28,
+      minCellHeight: 30,
     },
     headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 7.5, halign: "center", valign: "middle" },
     alternateRowStyles: { fillColor: [248, 248, 248] },
@@ -149,7 +163,13 @@ function drawLogPages(doc: jsPDF, logs: LogEntry[], profile: ProfileData, pageW:
       1: { cellWidth: 24 },
       2: { cellWidth: 30 },
       3: { cellWidth: 14 },
-      4: { cellWidth: "auto", halign: "left", valign: "middle", cellPadding: { top: 3, bottom: 3, left: 4, right: 4 } },
+      4: {
+        cellWidth: "auto",
+        halign: "left",
+        valign: "middle",
+        fontSize: 9,
+        cellPadding: { top: 4, bottom: 4, left: 5, right: 5 },
+      },
       5: { cellWidth: 20 },
       6: { cellWidth: 22 },
       7: { cellWidth: 16 },
@@ -157,14 +177,16 @@ function drawLogPages(doc: jsPDF, logs: LogEntry[], profile: ProfileData, pageW:
     },
     margin: { left: 10, right: 10 },
     didParseCell: (data) => {
-      // Justify long maintenance-task text; center short single-line entries.
+      // Maintenance-task cell: left-align short narratives, justify long multi-line ones for clean print look.
       if (data.section === "body" && data.column.index === 4) {
-        const raw = String(data.cell.raw ?? "");
-        if (raw.length > 60) {
+        const raw = String(data.cell.raw ?? "").trim();
+        if (raw.length > 140) {
           data.cell.styles.halign = "justify";
         } else {
-          data.cell.styles.halign = "center";
+          data.cell.styles.halign = "left";
         }
+        // Tighten line spacing slightly so paragraphs don't feel scattered.
+        (data.cell.styles as any).lineHeight = 1.25;
       }
     },
     didDrawCell: (data) => {
