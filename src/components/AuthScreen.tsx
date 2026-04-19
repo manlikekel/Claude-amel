@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plane, Loader2 } from "lucide-react";
+import { Plane, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -13,6 +13,7 @@ export function AuthScreen() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,15 +100,27 @@ export function AuthScreen() {
               required
               autoComplete="email"
             />
-            <Input
-              type="password"
-              placeholder="Password (min 6 chars)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              autoComplete={mode === "signin" ? "current-password" : "new-password"}
-            />
+            <div className="relative">
+              <Input
+                type={showPwd ? "text" : "password"}
+                placeholder="Password (min 6 chars)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd((s) => !s)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={showPwd ? "Hide password" : "Show password"}
+                tabIndex={-1}
+              >
+                {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
             <Button type="submit" variant="hero" size="lg" disabled={busy} className="mt-2">
               {busy && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
               {mode === "signin" ? "Sign In" : "Create Account"}
