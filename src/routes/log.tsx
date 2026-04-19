@@ -43,6 +43,7 @@ function LogEntryPage() {
     tools_used: "",
     time_spent_hours: "",
     is_recurring: false,
+    work_date: toLocalDateTimeInput(new Date()),
   });
   const [symptomInput, setSymptomInput] = useState("");
   const [ataSearch, setAtaSearch] = useState("");
@@ -70,6 +71,7 @@ function LogEntryPage() {
         tools_used: log.tools_used,
         time_spent_hours: log.time_spent_hours ? String(log.time_spent_hours) : "",
         is_recurring: log.is_recurring,
+        work_date: toLocalDateTimeInput(new Date(log.created_at)),
       });
       setLoadingEntry(false);
     });
@@ -164,6 +166,7 @@ function LogEntryPage() {
         image_urls: [] as string[],
         voice_note_url: null as string | null,
         is_recurring: form.is_recurring,
+        created_at: form.work_date ? new Date(form.work_date).toISOString() : null,
       };
       if (isEdit && editId) {
         await updateLog(editId, payload);
@@ -353,6 +356,15 @@ function LogEntryPage() {
             <Input value={form.time_spent_hours} placeholder="e.g. 1.5" type="number" step="0.5" onChange={(e) => update("time_spent_hours", e.target.value)} />
           </FieldGroup>
 
+          <FieldGroup label="Date & Time of Work">
+            <Input
+              type="datetime-local"
+              value={form.work_date}
+              onChange={(e) => update("work_date", e.target.value)}
+            />
+            <p className="mt-1 text-[10px] text-muted-foreground">Defaults to now. Adjust if you're back-logging an older job.</p>
+          </FieldGroup>
+
           <button
             onClick={() => update("is_recurring", !form.is_recurring)}
             className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm transition-all ${
@@ -386,4 +398,9 @@ function FieldGroup({ label, children }: { label: string; children: React.ReactN
       {children}
     </div>
   );
+}
+
+function toLocalDateTimeInput(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
