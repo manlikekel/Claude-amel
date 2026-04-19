@@ -15,12 +15,37 @@ export function AuthScreen() {
   const [busy, setBusy] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
 
+  const friendlyError = (err: any): string => {
+    const msg = String(err?.message ?? "").toLowerCase();
+    const code = String(err?.code ?? err?.error_code ?? "").toLowerCase();
+    if (code.includes("weak_password") || msg.includes("weak") || msg.includes("pwned")) {
+      return "That password is too common and has appeared in data breaches. Try a longer passphrase with mixed words, numbers and symbols.";
+    }
+    if (msg.includes("invalid login")) {
+      return "Email or password is incorrect. If you just signed up, please confirm your email first.";
+    }
+    if (msg.includes("already registered") || msg.includes("user already")) {
+      return "An account with this email already exists. Try signing in instead.";
+    }
+    if (msg.includes("email not confirmed")) {
+      return "Please confirm your email address first — check your inbox for the verification link.";
+    }
+    if (msg.includes("failed to fetch")) {
+      return "Network issue reaching the server. If you're on the preview, try the published app URL.";
+    }
+    return err?.message ?? "Authentication failed";
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password.length < 8) {
+      toast.error("Use at least 8 characters for your password.");
+      return;
+    }
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -29,15 +54,19 @@ export function AuthScreen() {
           },
         });
         if (error) throw error;
-        toast.success("Account created. Check your email to confirm, then sign in.");
-        setMode("signin");
+        if (data.session) {
+          toast.success("Account created successfully — welcome to AMEL!");
+        } else {
+          toast.success("Account created successfully! Check your email to confirm, then sign in.");
+          setMode("signin");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast.success("Welcome back");
+        toast.success("Login successful — welcome back!");
       }
     } catch (err: any) {
-      toast.error(err?.message ?? "Authentication failed");
+      toast.error(friendlyError(err));
     } finally {
       setBusy(false);
     }
