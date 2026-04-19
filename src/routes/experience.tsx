@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import { FileText, Plane, Wrench, BookOpen, Plus, Trash2, Pencil, Loader2 } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { FileText, Plane, Wrench, BookOpen, Plus, Trash2, Pencil, Loader2, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   computeExperience, computeStats,
   fetchLicences, saveLicence, updateLicence, deleteLicence,
   fetchProfile, fetchLogs,
-  type LicenceEntry, type ProfileData,
+  type LicenceEntry, type LogEntry,
 } from "@/lib/data";
 import { generateLogbookPDF } from "@/lib/pdf-export";
 import { motion } from "framer-motion";
@@ -32,10 +33,13 @@ function ExperiencePage() {
   const [licForm, setLicForm] = useState(EMPTY_LIC);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [allLogs, setAllLogs] = useState<LogEntry[]>([]);
+  const [filters, setFilters] = useState({ from: "", to: "", aircraft: "all", ata: "all" });
 
   const reload = async () => {
-    const [exp, s, lics] = await Promise.all([computeExperience(), computeStats(), fetchLicences()]);
-    setData(exp); setStats(s); setLicences(lics);
+    const [exp, s, lics, logs] = await Promise.all([computeExperience(), computeStats(), fetchLicences(), fetchLogs()]);
+    setData(exp); setStats(s); setLicences(lics); setAllLogs(logs);
   };
 
   useEffect(() => {
@@ -68,12 +72,34 @@ function ExperiencePage() {
     catch (e: any) { toast.error(e?.message ?? "Delete failed"); }
   };
 
+  const aircraftOptions = useMemo(() => {
+    const set = new Set(allLogs.map((l) => l.aircraft_model).filter(Boolean));
+    return Array.from(set).sort();
+  }, [allLogs]);
+
+  const ataOptions = useMemo(() => {
+    const set = new Set(allLogs.map((l) => l.ata_chapter).filter(Boolean));
+    return Array.from(set).sort();
+  }, [allLogs]);
+
+  const filteredLogs = useMemo(() => {
+    return allLogs.filter((l) => {
+      const t = new Date(l.created_at).getTime();
+      if (filters.from && t < new Date(filters.from).getTime()) return false;
+      if (filters.to && t > new Date(filters.to + "T23:59:59").getTime()) return false;
+      if (filters.aircraft !== "all" && l.aircraft_model !== filters.aircraft) return false;
+      if (filters.ata !== "all" && l.ata_chapter !== filters.ata) return false;
+      return true;
+    });
+  }, [allLogs, filters]);
+
   const handleExport = async () => {
     setExporting(true);
     try {
-      const [logs, lics, profile] = await Promise.all([fetchLogs(), fetchLicences(), fetchProfile()]);
-      generateLogbookPDF({ logs, licences: lics, profile });
-      toast.success("PDF exported");
+      const [lics, profile] = await Promise.all([fetchLicences(), fetchProfile()]);
+      generateLogbookPDF({ logs: filteredLogs, licences: lics, profile });
+      setFilterOpen(false);
+      toast.success(`PDF exported (${filteredLogs.length} ${filteredLogs.length === 1 ? "entry" : "entries"})`);
     } catch (e: any) {
       toast.error(e?.message ?? "Export failed");
     } finally { setExporting(false); }
@@ -208,11 +234,82 @@ function ExperiencePage() {
             </motion.section>
 
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-              <Button variant="hero" size="xl" className="w-full gap-2" onClick={handleExport} disabled={exporting}>
-                {exporting ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileText className="h-5 w-5" />}
+              <Button variant="hero" size="xl" className="w-full gap-2" onClick={() => setFilterOpen(true)} disabled={exporting}>
+                <FileText className="h-5 w-5" />
                 Export Logbook PDF
               </Button>
             </motion.div>
+
+            <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Filter className="h-4 w-4 text-primary" />
+                    Filter PDF Export
+                  </DialogTitle>
+                </DialogHeader>
+
+                <div className="flex flex-col gap-4 mt-2">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">From</label>
+                      <Input type="date" value={filters.from} onChange={(e) => setFilters({ ...filters, from: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">To</label>
+                      <Input type="date" value={filters.to} onChange={(e) => setFilters({ ...filters, to: e.target.value })} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Aircraft Type</label>
+                    <select
+                      value={filters.aircraft}
+                      onChange={(e) => setFilters({ ...filters, aircraft: e.target.value })}
+                      className="mt-1 flex w-full rounded-xl border border-glass-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                      <option value="all">All aircraft</option>
+                      {aircraftOptions.map((a) => (
+                        <option key={a} value={a}>{a}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider text-muted-foreground">ATA Chapter</label>
+                    <select
+                      value={filters.ata}
+                      onChange={(e) => setFilters({ ...filters, ata: e.target.value })}
+                      className="mt-1 flex w-full rounded-xl border border-glass-border bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                      <option value="all">All ATA chapters</option>
+                      {ataOptions.map((a) => (
+                        <option key={a} value={a}>{a}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-glass-border pt-3">
+                    <span>{filteredLogs.length} of {allLogs.length} entries match</span>
+                    <button
+                      type="button"
+                      onClick={() => setFilters({ from: "", to: "", aircraft: "all", ata: "all" })}
+                      className="text-primary hover:underline"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                </div>
+
+                <DialogFooter className="mt-4">
+                  <Button variant="ghost" onClick={() => setFilterOpen(false)}>Cancel</Button>
+                  <Button variant="hero" onClick={handleExport} disabled={exporting || filteredLogs.length === 0} className="gap-2">
+                    {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+                    Generate PDF
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </>
         )}
       </div>

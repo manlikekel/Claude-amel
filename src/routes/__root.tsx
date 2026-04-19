@@ -1,6 +1,7 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { BottomNav } from "@/components/BottomNav";
 import { AuthGate } from "@/components/AuthGate";
+import { OnboardingTour } from "@/components/OnboardingTour";
 import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
@@ -66,6 +67,7 @@ function RootComponent() {
     <AuthGate>
       <Outlet />
       <BottomNav />
+      <OnboardingTour />
       <Toaster position="top-center" />
     </AuthGate>
   );

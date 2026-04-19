@@ -283,7 +283,9 @@ export async function fetchLog(id: string): Promise<LogEntry | null> {
   return data ? rowToLog(data) : null;
 }
 
-export async function saveLog(input: Omit<LogEntry, "id" | "created_at">): Promise<void> {
+export type LogInput = Omit<LogEntry, "id" | "created_at"> & { created_at?: string | null };
+
+export async function saveLog(input: LogInput): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not signed in");
   const { error } = await supabase.from("maintenance_logs").insert({
@@ -302,11 +304,12 @@ export async function saveLog(input: Omit<LogEntry, "id" | "created_at">): Promi
     is_recurring: input.is_recurring,
     image_urls: input.image_urls,
     voice_note_url: input.voice_note_url,
+    ...(input.created_at ? { created_at: input.created_at } : {}),
   });
   if (error) throw error;
 }
 
-export async function updateLog(id: string, input: Omit<LogEntry, "id" | "created_at">): Promise<void> {
+export async function updateLog(id: string, input: LogInput): Promise<void> {
   const { error } = await supabase.from("maintenance_logs").update({
     aircraft_profile_id: input.aircraft_profile_id,
     registration: input.registration,
@@ -322,6 +325,7 @@ export async function updateLog(id: string, input: Omit<LogEntry, "id" | "create
     is_recurring: input.is_recurring,
     image_urls: input.image_urls,
     voice_note_url: input.voice_note_url,
+    ...(input.created_at ? { created_at: input.created_at } : {}),
   }).eq("id", id);
   if (error) throw error;
 }
