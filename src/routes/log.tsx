@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, RotateCcw, Loader2, Search as SearchIcon, Trash2, CheckCircle2 } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { ArrowLeft, RotateCcw, Loader2, Search as SearchIcon, Trash2, CheckCircle2, Mic, Square, Sparkles } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
