@@ -132,11 +132,11 @@ export function AuthScreen() {
             <div className="relative">
               <Input
                 type={showPwd ? "text" : "password"}
-                placeholder="Password (min 6 chars)"
+                placeholder="Password (min 8 chars, avoid common ones)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={8}
                 autoComplete={mode === "signin" ? "current-password" : "new-password"}
                 className="pr-10"
               />
