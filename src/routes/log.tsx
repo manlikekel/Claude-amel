@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, RotateCcw, Loader2, Search as SearchIcon, Trash2, CheckCircle2 } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { ArrowLeft, RotateCcw, Loader2, Search as SearchIcon, Trash2, CheckCircle2, Mic, Square, Sparkles } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,6 +53,83 @@ function LogEntryPage() {
   const [lookupSource, setLookupSource] = useState<string | null>(null);
   const [loadingEntry, setLoadingEntry] = useState(isEdit);
   const [saving, setSaving] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [suggestingAta, setSuggestingAta] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      mr.ondataavailable = (e) => e.data.size > 0 && audioChunksRef.current.push(e.data);
+      mr.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(audioChunksRef.current, { type: mr.mimeType || "audio/webm" });
+        await transcribeBlob(blob, mr.mimeType || "audio/webm");
+      };
+      mr.start();
+      mediaRecorderRef.current = mr;
+      setRecording(true);
+    } catch (e) {
+      console.error(e);
+      toast.error("Microphone access denied");
+    }
+  };
+
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+    setRecording(false);
+  };
+
+  const transcribeBlob = async (blob: Blob, mimeType: string) => {
+    setTranscribing(true);
+    try {
+      const base64 = await blobToBase64(blob);
+      const { data, error } = await supabase.functions.invoke("transcribe-audio", {
+        body: { audio: base64, mimeType },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const transcript = (data?.text ?? "").trim();
+      if (!transcript) { toast.error("Couldn't pick anything up — try again"); return; }
+      setForm((p) => ({
+        ...p,
+        fault_description: p.fault_description ? `${p.fault_description}\n${transcript}` : transcript,
+      }));
+      toast.success("Transcribed");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Transcription failed");
+    } finally {
+      setTranscribing(false);
+    }
+  };
+
+  const suggestAta = async () => {
+    if (!form.fault_description.trim()) { toast.error("Add a fault description first"); return; }
+    setSuggestingAta(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("suggest-ata", {
+        body: { fault: form.fault_description, chapters: ATA_CHAPTERS },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.chapter && ATA_CHAPTERS.includes(data.chapter)) {
+        update("ata_chapter", data.chapter);
+        setAtaSearch("");
+        toast.success(`Suggested: ${data.chapter}`, { description: data.reasoning });
+      } else {
+        toast.error("No suitable chapter found");
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Suggestion failed");
+    } finally {
+      setSuggestingAta(false);
+    }
+  };
+
 
   // Load existing log if editing
   useEffect(() => {
@@ -277,39 +355,68 @@ function LogEntryPage() {
           </FieldGroup>
 
           <FieldGroup label="ATA Chapter">
-            <div className="relative">
-              <Input
-                value={form.ata_chapter || ataSearch}
-                placeholder="e.g. 21 – Air Conditioning"
-                onFocus={() => setShowAtaDropdown(true)}
-                onChange={(e) => { setAtaSearch(e.target.value); update("ata_chapter", ""); setShowAtaDropdown(true); }}
-                onBlur={() => setTimeout(() => setShowAtaDropdown(false), 150)}
-              />
-              {showAtaDropdown && filteredAta.length > 0 && (
-                <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-xl surface-opaque p-1">
-                  {filteredAta.map((a) => (
-                    <button
-                      key={a}
-                      type="button"
-                      className="w-full rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-accent"
-                      onMouseDown={() => { update("ata_chapter", a); setAtaSearch(""); setShowAtaDropdown(false); }}
-                    >
-                      {a}
-                    </button>
-                  ))}
-                </div>
-              )}
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Input
+                  value={form.ata_chapter || ataSearch}
+                  placeholder="e.g. 21 – Air Conditioning"
+                  onFocus={() => setShowAtaDropdown(true)}
+                  onChange={(e) => { setAtaSearch(e.target.value); update("ata_chapter", ""); setShowAtaDropdown(true); }}
+                  onBlur={() => setTimeout(() => setShowAtaDropdown(false), 150)}
+                />
+                {showAtaDropdown && filteredAta.length > 0 && (
+                  <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-xl surface-opaque p-1">
+                    {filteredAta.map((a) => (
+                      <button
+                        key={a}
+                        type="button"
+                        className="w-full rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-accent"
+                        onMouseDown={() => { update("ata_chapter", a); setAtaSearch(""); setShowAtaDropdown(false); }}
+                      >
+                        {a}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <Button
+                variant="action"
+                size="default"
+                onClick={suggestAta}
+                disabled={suggestingAta || !form.fault_description.trim()}
+                title="AI suggest from fault description"
+              >
+                {suggestingAta ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              </Button>
             </div>
+            <p className="mt-1 text-[10px] text-muted-foreground">Tip: Write the fault first, then tap ✨ to let AI pick the chapter.</p>
           </FieldGroup>
 
           <FieldGroup label="Fault Description">
-            <textarea
-              value={form.fault_description}
-              placeholder="What exactly happened? (EICAS, symptoms, conditions)"
-              onChange={(e) => update("fault_description", e.target.value)}
-              rows={3}
-              className="flex w-full rounded-xl border border-glass-border bg-glass px-3 py-2 text-sm text-foreground backdrop-blur-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
+            <div className="relative">
+              <textarea
+                value={form.fault_description}
+                placeholder="What exactly happened? (EICAS, symptoms, conditions) — or tap the mic to dictate"
+                onChange={(e) => update("fault_description", e.target.value)}
+                rows={4}
+                className="flex w-full rounded-xl border border-glass-border bg-glass px-3 py-2 pr-12 text-sm text-foreground backdrop-blur-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              />
+              <button
+                type="button"
+                onClick={recording ? stopRecording : startRecording}
+                disabled={transcribing}
+                title={recording ? "Stop recording" : "Dictate fault"}
+                className={`absolute right-2 top-2 inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all ${
+                  recording
+                    ? "bg-destructive text-destructive-foreground animate-pulse"
+                    : "glass-subtle text-primary hover:gold-glow-sm"
+                }`}
+              >
+                {transcribing ? <Loader2 className="h-4 w-4 animate-spin" /> : recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </button>
+            </div>
+            {recording && <p className="mt-1.5 text-[11px] text-destructive">● Recording… tap stop when done.</p>}
+            {transcribing && <p className="mt-1.5 text-[11px] text-muted-foreground">Transcribing your voice…</p>}
           </FieldGroup>
 
           <FieldGroup label="Symptoms">
@@ -403,4 +510,18 @@ function FieldGroup({ label, children }: { label: string; children: React.ReactN
 function toLocalDateTimeInput(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      // strip "data:audio/webm;base64,"
+      const base64 = result.includes(",") ? result.split(",")[1] : result;
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
