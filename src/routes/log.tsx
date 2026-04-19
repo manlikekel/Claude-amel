@@ -355,39 +355,68 @@ function LogEntryPage() {
           </FieldGroup>
 
           <FieldGroup label="ATA Chapter">
-            <div className="relative">
-              <Input
-                value={form.ata_chapter || ataSearch}
-                placeholder="e.g. 21 – Air Conditioning"
-                onFocus={() => setShowAtaDropdown(true)}
-                onChange={(e) => { setAtaSearch(e.target.value); update("ata_chapter", ""); setShowAtaDropdown(true); }}
-                onBlur={() => setTimeout(() => setShowAtaDropdown(false), 150)}
-              />
-              {showAtaDropdown && filteredAta.length > 0 && (
-                <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-xl surface-opaque p-1">
-                  {filteredAta.map((a) => (
-                    <button
-                      key={a}
-                      type="button"
-                      className="w-full rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-accent"
-                      onMouseDown={() => { update("ata_chapter", a); setAtaSearch(""); setShowAtaDropdown(false); }}
-                    >
-                      {a}
-                    </button>
-                  ))}
-                </div>
-              )}
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Input
+                  value={form.ata_chapter || ataSearch}
+                  placeholder="e.g. 21 – Air Conditioning"
+                  onFocus={() => setShowAtaDropdown(true)}
+                  onChange={(e) => { setAtaSearch(e.target.value); update("ata_chapter", ""); setShowAtaDropdown(true); }}
+                  onBlur={() => setTimeout(() => setShowAtaDropdown(false), 150)}
+                />
+                {showAtaDropdown && filteredAta.length > 0 && (
+                  <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-xl surface-opaque p-1">
+                    {filteredAta.map((a) => (
+                      <button
+                        key={a}
+                        type="button"
+                        className="w-full rounded-lg px-3 py-2 text-left text-sm text-foreground hover:bg-accent"
+                        onMouseDown={() => { update("ata_chapter", a); setAtaSearch(""); setShowAtaDropdown(false); }}
+                      >
+                        {a}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <Button
+                variant="action"
+                size="default"
+                onClick={suggestAta}
+                disabled={suggestingAta || !form.fault_description.trim()}
+                title="AI suggest from fault description"
+              >
+                {suggestingAta ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              </Button>
             </div>
+            <p className="mt-1 text-[10px] text-muted-foreground">Tip: Write the fault first, then tap ✨ to let AI pick the chapter.</p>
           </FieldGroup>
 
           <FieldGroup label="Fault Description">
-            <textarea
-              value={form.fault_description}
-              placeholder="What exactly happened? (EICAS, symptoms, conditions)"
-              onChange={(e) => update("fault_description", e.target.value)}
-              rows={3}
-              className="flex w-full rounded-xl border border-glass-border bg-glass px-3 py-2 text-sm text-foreground backdrop-blur-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
+            <div className="relative">
+              <textarea
+                value={form.fault_description}
+                placeholder="What exactly happened? (EICAS, symptoms, conditions) — or tap the mic to dictate"
+                onChange={(e) => update("fault_description", e.target.value)}
+                rows={4}
+                className="flex w-full rounded-xl border border-glass-border bg-glass px-3 py-2 pr-12 text-sm text-foreground backdrop-blur-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              />
+              <button
+                type="button"
+                onClick={recording ? stopRecording : startRecording}
+                disabled={transcribing}
+                title={recording ? "Stop recording" : "Dictate fault"}
+                className={`absolute right-2 top-2 inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all ${
+                  recording
+                    ? "bg-destructive text-destructive-foreground animate-pulse"
+                    : "glass-subtle text-primary hover:gold-glow-sm"
+                }`}
+              >
+                {transcribing ? <Loader2 className="h-4 w-4 animate-spin" /> : recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </button>
+            </div>
+            {recording && <p className="mt-1.5 text-[11px] text-destructive">● Recording… tap stop when done.</p>}
+            {transcribing && <p className="mt-1.5 text-[11px] text-muted-foreground">Transcribing your voice…</p>}
           </FieldGroup>
 
           <FieldGroup label="Symptoms">
