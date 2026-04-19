@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import { FileText, Plane, Wrench, BookOpen, Plus, Trash2, Pencil, Loader2 } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { FileText, Plane, Wrench, BookOpen, Plus, Trash2, Pencil, Loader2, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   computeExperience, computeStats,
   fetchLicences, saveLicence, updateLicence, deleteLicence,
   fetchProfile, fetchLogs,
-  type LicenceEntry, type ProfileData,
+  type LicenceEntry, type LogEntry,
 } from "@/lib/data";
 import { generateLogbookPDF } from "@/lib/pdf-export";
 import { motion } from "framer-motion";
@@ -32,10 +33,13 @@ function ExperiencePage() {
   const [licForm, setLicForm] = useState(EMPTY_LIC);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [allLogs, setAllLogs] = useState<LogEntry[]>([]);
+  const [filters, setFilters] = useState({ from: "", to: "", aircraft: "all", ata: "all" });
 
   const reload = async () => {
-    const [exp, s, lics] = await Promise.all([computeExperience(), computeStats(), fetchLicences()]);
-    setData(exp); setStats(s); setLicences(lics);
+    const [exp, s, lics, logs] = await Promise.all([computeExperience(), computeStats(), fetchLicences(), fetchLogs()]);
+    setData(exp); setStats(s); setLicences(lics); setAllLogs(logs);
   };
 
   useEffect(() => {
@@ -68,12 +72,34 @@ function ExperiencePage() {
     catch (e: any) { toast.error(e?.message ?? "Delete failed"); }
   };
 
+  const aircraftOptions = useMemo(() => {
+    const set = new Set(allLogs.map((l) => l.aircraft_model).filter(Boolean));
+    return Array.from(set).sort();
+  }, [allLogs]);
+
+  const ataOptions = useMemo(() => {
+    const set = new Set(allLogs.map((l) => l.ata_chapter).filter(Boolean));
+    return Array.from(set).sort();
+  }, [allLogs]);
+
+  const filteredLogs = useMemo(() => {
+    return allLogs.filter((l) => {
+      const t = new Date(l.created_at).getTime();
+      if (filters.from && t < new Date(filters.from).getTime()) return false;
+      if (filters.to && t > new Date(filters.to + "T23:59:59").getTime()) return false;
+      if (filters.aircraft !== "all" && l.aircraft_model !== filters.aircraft) return false;
+      if (filters.ata !== "all" && l.ata_chapter !== filters.ata) return false;
+      return true;
+    });
+  }, [allLogs, filters]);
+
   const handleExport = async () => {
     setExporting(true);
     try {
-      const [logs, lics, profile] = await Promise.all([fetchLogs(), fetchLicences(), fetchProfile()]);
-      generateLogbookPDF({ logs, licences: lics, profile });
-      toast.success("PDF exported");
+      const [lics, profile] = await Promise.all([fetchLicences(), fetchProfile()]);
+      generateLogbookPDF({ logs: filteredLogs, licences: lics, profile });
+      setFilterOpen(false);
+      toast.success(`PDF exported (${filteredLogs.length} ${filteredLogs.length === 1 ? "entry" : "entries"})`);
     } catch (e: any) {
       toast.error(e?.message ?? "Export failed");
     } finally { setExporting(false); }
