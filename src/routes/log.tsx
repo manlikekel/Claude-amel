@@ -45,7 +45,11 @@ function LogEntryPage() {
     time_spent_hours: "",
     is_recurring: false,
     work_date: toLocalDateTimeInput(new Date()),
+    system_component: "",
+    maintenance_reference: "",
+    share_to_community: true,
   });
+  const [showShareInfo, setShowShareInfo] = useState(false);
   const [symptomInput, setSymptomInput] = useState("");
   const [ataSearch, setAtaSearch] = useState("");
   const [showAtaDropdown, setShowAtaDropdown] = useState(false);
