@@ -24,6 +24,7 @@ function AccountPage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<ProfileData>({
     name: "", email: "", phone: "", ame_licence_no: "", address: "",
+    share_to_community_default: true, country_region: "",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -104,11 +105,47 @@ function AccountPage() {
                     placeholder="Hangar / Base address"
                   />
                 </Field>
+                <Field label="Country / Region (optional)">
+                  <Input
+                    value={profile.country_region ?? ""}
+                    onChange={(e) => setProfile({ ...profile, country_region: e.target.value })}
+                    placeholder="e.g. Nigeria, West Africa"
+                  />
+                </Field>
 
                 <Button variant="hero" size="lg" onClick={handleSave} disabled={saving} className="mt-2">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                   Save Profile
                 </Button>
+              </div>
+            </Card>
+
+            <Card className="p-5">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-primary mb-3">
+                Global Knowledge Sharing
+              </h2>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground">Share new logs anonymously by default</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                    When OFF, none of your future logs will be added to the global troubleshooting database, regardless of per-log toggles.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={profile.share_to_community_default ?? true}
+                  onClick={() => setProfile({ ...profile, share_to_community_default: !(profile.share_to_community_default ?? true) })}
+                  className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                    (profile.share_to_community_default ?? true) ? "bg-primary" : "bg-muted"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                      (profile.share_to_community_default ?? true) ? "translate-x-[22px]" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
               </div>
             </Card>
 
