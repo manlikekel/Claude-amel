@@ -17,8 +17,8 @@ export interface ProfileData {
   phone: string;
   ame_licence_no: string;
   address: string;
-  share_to_community_default: boolean;
-  country_region: string;
+  share_to_community_default?: boolean;
+  country_region?: string;
 }
 
 export interface LicenceEntry {
@@ -65,9 +65,9 @@ export interface LogEntry {
   image_urls: string[];
   voice_note_url: string | null;
   created_at: string;
-  system_component: string;
-  maintenance_reference: string;
-  share_to_community: boolean;
+  system_component?: string;
+  maintenance_reference?: string;
+  share_to_community?: boolean;
 }
 
 // ============ PROFILE ============
