@@ -154,10 +154,24 @@ function LogEntryPage() {
         time_spent_hours: log.time_spent_hours ? String(log.time_spent_hours) : "",
         is_recurring: log.is_recurring,
         work_date: toLocalDateTimeInput(new Date(log.created_at)),
+        system_component: log.system_component ?? "",
+        maintenance_reference: log.maintenance_reference ?? "",
+        share_to_community: log.share_to_community ?? true,
       });
       setLoadingEntry(false);
     });
   }, [editId, navigate]);
+
+  // First-time community-share prompt (shown once, only on a new entry)
+  useEffect(() => {
+    if (isEdit) return;
+    try {
+      if (!localStorage.getItem("amel.share_prompt_seen")) {
+        setShowShareInfo(true);
+        localStorage.setItem("amel.share_prompt_seen", "1");
+      }
+    } catch { /* ignore */ }
+  }, [isEdit]);
 
   const update = useCallback(
     (field: string, value: string | boolean | string[] | null) =>
