@@ -476,6 +476,23 @@ function LogEntryPage() {
             />
           </FieldGroup>
 
+          <FieldGroup label="System / Component (optional)">
+            <Input
+              value={form.system_component}
+              placeholder="e.g. air conditioning system, ram air fan, landing gear"
+              onChange={(e) => update("system_component", e.target.value)}
+            />
+            <p className="mt-1 text-[10px] text-muted-foreground">Improves NCAA O-PEL-020 wording.</p>
+          </FieldGroup>
+
+          <FieldGroup label="Maintenance Reference (optional)">
+            <Input
+              value={form.maintenance_reference}
+              placeholder="e.g. AMM 21-51-00, FIM 21-00-00, SRM 32-00-00"
+              onChange={(e) => update("maintenance_reference", e.target.value)}
+            />
+          </FieldGroup>
+
           <FieldGroup label="Tools / Manual Used">
             <Input value={form.tools_used} placeholder="Manual, AMM ref, tools used" onChange={(e) => update("tools_used", e.target.value)} />
           </FieldGroup>
@@ -502,6 +519,30 @@ function LogEntryPage() {
             <RotateCcw className="h-4 w-4" />
             Mark as Recurring
           </button>
+
+          <div className="rounded-xl glass-subtle p-3 flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">Share anonymously to AMEL knowledge base</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                Helps other engineers troubleshoot. Your name, email, and full registration are never shared.
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={form.share_to_community}
+              onClick={() => update("share_to_community", !form.share_to_community)}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                form.share_to_community ? "bg-primary" : "bg-muted"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                  form.share_to_community ? "translate-x-[22px]" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+          </div>
 
           <Button
             variant="hero"
