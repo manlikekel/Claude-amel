@@ -45,7 +45,11 @@ function LogEntryPage() {
     time_spent_hours: "",
     is_recurring: false,
     work_date: toLocalDateTimeInput(new Date()),
+    system_component: "",
+    maintenance_reference: "",
+    share_to_community: true,
   });
+  const [showShareInfo, setShowShareInfo] = useState(false);
   const [symptomInput, setSymptomInput] = useState("");
   const [ataSearch, setAtaSearch] = useState("");
   const [showAtaDropdown, setShowAtaDropdown] = useState(false);
@@ -150,10 +154,24 @@ function LogEntryPage() {
         time_spent_hours: log.time_spent_hours ? String(log.time_spent_hours) : "",
         is_recurring: log.is_recurring,
         work_date: toLocalDateTimeInput(new Date(log.created_at)),
+        system_component: log.system_component ?? "",
+        maintenance_reference: log.maintenance_reference ?? "",
+        share_to_community: log.share_to_community ?? true,
       });
       setLoadingEntry(false);
     });
   }, [editId, navigate]);
+
+  // First-time community-share prompt (shown once, only on a new entry)
+  useEffect(() => {
+    if (isEdit) return;
+    try {
+      if (!localStorage.getItem("amel.share_prompt_seen")) {
+        setShowShareInfo(true);
+        localStorage.setItem("amel.share_prompt_seen", "1");
+      }
+    } catch { /* ignore */ }
+  }, [isEdit]);
 
   const update = useCallback(
     (field: string, value: string | boolean | string[] | null) =>
@@ -245,6 +263,9 @@ function LogEntryPage() {
         voice_note_url: null as string | null,
         is_recurring: form.is_recurring,
         created_at: form.work_date ? new Date(form.work_date).toISOString() : null,
+        system_component: form.system_component,
+        maintenance_reference: form.maintenance_reference,
+        share_to_community: form.share_to_community,
       };
       if (isEdit && editId) {
         await updateLog(editId, payload);
@@ -455,6 +476,23 @@ function LogEntryPage() {
             />
           </FieldGroup>
 
+          <FieldGroup label="System / Component (optional)">
+            <Input
+              value={form.system_component}
+              placeholder="e.g. air conditioning system, ram air fan, landing gear"
+              onChange={(e) => update("system_component", e.target.value)}
+            />
+            <p className="mt-1 text-[10px] text-muted-foreground">Improves NCAA O-PEL-020 wording.</p>
+          </FieldGroup>
+
+          <FieldGroup label="Maintenance Reference (optional)">
+            <Input
+              value={form.maintenance_reference}
+              placeholder="e.g. AMM 21-51-00, FIM 21-00-00, SRM 32-00-00"
+              onChange={(e) => update("maintenance_reference", e.target.value)}
+            />
+          </FieldGroup>
+
           <FieldGroup label="Tools / Manual Used">
             <Input value={form.tools_used} placeholder="Manual, AMM ref, tools used" onChange={(e) => update("tools_used", e.target.value)} />
           </FieldGroup>
@@ -482,6 +520,30 @@ function LogEntryPage() {
             Mark as Recurring
           </button>
 
+          <div className="rounded-xl glass-subtle p-3 flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">Share anonymously to AMEL knowledge base</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                Helps other engineers troubleshoot. Your name, email, and full registration are never shared.
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={form.share_to_community}
+              onClick={() => update("share_to_community", !form.share_to_community)}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                form.share_to_community ? "bg-primary" : "bg-muted"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                  form.share_to_community ? "translate-x-[22px]" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+          </div>
+
           <Button
             variant="hero"
             size="xl"
@@ -494,6 +556,29 @@ function LogEntryPage() {
           </Button>
         </motion.div>
       </div>
+
+      {/* First-time community-share onboarding */}
+      {showShareInfo && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowShareInfo(false)}>
+          <div className="w-full max-w-md rounded-2xl surface-opaque p-5" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-primary">Help engineers worldwide</h3>
+            <p className="mt-2 text-sm text-foreground">
+              Your logs can be shared <strong>anonymously</strong> to help other AMEs solve similar issues faster.
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Name, email, phone and exact registration are <strong>never</strong> shared. You can turn this off any time per-log or in Account.
+            </p>
+            <div className="mt-4 flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => { update("share_to_community", false); setShowShareInfo(false); }}>
+                Turn off
+              </Button>
+              <Button variant="hero" className="flex-1" onClick={() => setShowShareInfo(false)}>
+                Continue sharing
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

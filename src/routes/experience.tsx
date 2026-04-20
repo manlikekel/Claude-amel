@@ -12,6 +12,7 @@ import {
   type LicenceEntry, type LogEntry,
 } from "@/lib/data";
 import { generateLogbookPDF } from "@/lib/pdf-export";
+import { generateNcaaPracticalExperiencePDF } from "@/lib/pdf-export-ncaa";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
@@ -34,6 +35,9 @@ function ExperiencePage() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [formatChooserOpen, setFormatChooserOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<"amel" | "ncaa">("amel");
+  const [includeAta, setIncludeAta] = useState(true);
   const [allLogs, setAllLogs] = useState<LogEntry[]>([]);
   const [filters, setFilters] = useState({ from: "", to: "", aircraft: "all", ata: "all" });
 
@@ -97,9 +101,14 @@ function ExperiencePage() {
     setExporting(true);
     try {
       const [lics, profile] = await Promise.all([fetchLicences(), fetchProfile()]);
-      generateLogbookPDF({ logs: filteredLogs, licences: lics, profile });
+      if (exportFormat === "ncaa") {
+        generateNcaaPracticalExperiencePDF({ logs: filteredLogs, profile, includeAta });
+        toast.success(`NCAA O-PEL-020 exported (${filteredLogs.length} ${filteredLogs.length === 1 ? "entry" : "entries"})`);
+      } else {
+        generateLogbookPDF({ logs: filteredLogs, licences: lics, profile });
+        toast.success(`AMEL Logbook exported (${filteredLogs.length} ${filteredLogs.length === 1 ? "entry" : "entries"})`);
+      }
       setFilterOpen(false);
-      toast.success(`PDF exported (${filteredLogs.length} ${filteredLogs.length === 1 ? "entry" : "entries"})`);
     } catch (e: any) {
       toast.error(e?.message ?? "Export failed");
     } finally { setExporting(false); }
@@ -234,18 +243,45 @@ function ExperiencePage() {
             </motion.section>
 
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-              <Button variant="hero" size="xl" className="w-full gap-2" onClick={() => setFilterOpen(true)} disabled={exporting}>
+              <Button variant="hero" size="xl" className="w-full gap-2" onClick={() => setFormatChooserOpen(true)} disabled={exporting}>
                 <FileText className="h-5 w-5" />
-                Export Logbook PDF
+                Export PDF
               </Button>
             </motion.div>
+
+            {/* Format chooser */}
+            <Dialog open={formatChooserOpen} onOpenChange={setFormatChooserOpen}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Choose export format</DialogTitle>
+                </DialogHeader>
+                <div className="flex flex-col gap-3 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => { setExportFormat("amel"); setFormatChooserOpen(false); setFilterOpen(true); }}
+                    className="text-left rounded-xl glass p-4 hover:border-primary/40 transition-all"
+                  >
+                    <p className="text-sm font-bold text-primary">AMEL Professional Logbook</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Premium landscape logbook with cover, licences and full work record.</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setExportFormat("ncaa"); setFormatChooserOpen(false); setFilterOpen(true); }}
+                    className="text-left rounded-xl glass p-4 hover:border-primary/40 transition-all"
+                  >
+                    <p className="text-sm font-bold text-primary">NCAA O-PEL-020 Practical Experience</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Official portrait logbook for licence application. Blank certifier column for handwritten signing.</p>
+                  </button>
+                </div>
+              </DialogContent>
+            </Dialog>
 
             <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
               <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <Filter className="h-4 w-4 text-primary" />
-                    Filter PDF Export
+                    {exportFormat === "ncaa" ? "NCAA O-PEL-020 Filters" : "Filter PDF Export"}
                   </DialogTitle>
                 </DialogHeader>
 
@@ -288,6 +324,18 @@ function ExperiencePage() {
                       ))}
                     </select>
                   </div>
+
+                  {exportFormat === "ncaa" && (
+                    <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={includeAta}
+                        onChange={(e) => setIncludeAta(e.target.checked)}
+                        className="h-4 w-4 accent-primary"
+                      />
+                      Include ATA chapter prefix in work description
+                    </label>
+                  )}
 
                   <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-glass-border pt-3">
                     <span>{filteredLogs.length} of {allLogs.length} entries match</span>
