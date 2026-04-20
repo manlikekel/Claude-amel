@@ -325,6 +325,18 @@ function ExperiencePage() {
                     </select>
                   </div>
 
+                  {exportFormat === "ncaa" && (
+                    <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={includeAta}
+                        onChange={(e) => setIncludeAta(e.target.checked)}
+                        className="h-4 w-4 accent-primary"
+                      />
+                      Include ATA chapter prefix in work description
+                    </label>
+                  )}
+
                   <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-glass-border pt-3">
                     <span>{filteredLogs.length} of {allLogs.length} entries match</span>
                     <button
