@@ -12,6 +12,7 @@ import {
   type LicenceEntry, type LogEntry,
 } from "@/lib/data";
 import { generateLogbookPDF } from "@/lib/pdf-export";
+import { generateNcaaPracticalExperiencePDF } from "@/lib/pdf-export-ncaa";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
@@ -34,6 +35,9 @@ function ExperiencePage() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [formatChooserOpen, setFormatChooserOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<"amel" | "ncaa">("amel");
+  const [includeAta, setIncludeAta] = useState(true);
   const [allLogs, setAllLogs] = useState<LogEntry[]>([]);
   const [filters, setFilters] = useState({ from: "", to: "", aircraft: "all", ata: "all" });
 
@@ -97,9 +101,14 @@ function ExperiencePage() {
     setExporting(true);
     try {
       const [lics, profile] = await Promise.all([fetchLicences(), fetchProfile()]);
-      generateLogbookPDF({ logs: filteredLogs, licences: lics, profile });
+      if (exportFormat === "ncaa") {
+        generateNcaaPracticalExperiencePDF({ logs: filteredLogs, profile, includeAta });
+        toast.success(`NCAA O-PEL-020 exported (${filteredLogs.length} ${filteredLogs.length === 1 ? "entry" : "entries"})`);
+      } else {
+        generateLogbookPDF({ logs: filteredLogs, licences: lics, profile });
+        toast.success(`AMEL Logbook exported (${filteredLogs.length} ${filteredLogs.length === 1 ? "entry" : "entries"})`);
+      }
       setFilterOpen(false);
-      toast.success(`PDF exported (${filteredLogs.length} ${filteredLogs.length === 1 ? "entry" : "entries"})`);
     } catch (e: any) {
       toast.error(e?.message ?? "Export failed");
     } finally { setExporting(false); }
