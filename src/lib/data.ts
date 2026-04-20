@@ -318,6 +318,9 @@ export async function saveLog(input: LogInput): Promise<void> {
     is_recurring: input.is_recurring,
     image_urls: input.image_urls,
     voice_note_url: input.voice_note_url,
+    system_component: input.system_component ?? null,
+    maintenance_reference: input.maintenance_reference ?? null,
+    share_to_community: input.share_to_community ?? true,
     ...(input.created_at ? { created_at: input.created_at } : {}),
   });
   if (error) throw error;
@@ -339,6 +342,9 @@ export async function updateLog(id: string, input: LogInput): Promise<void> {
     is_recurring: input.is_recurring,
     image_urls: input.image_urls,
     voice_note_url: input.voice_note_url,
+    system_component: input.system_component ?? null,
+    maintenance_reference: input.maintenance_reference ?? null,
+    share_to_community: input.share_to_community ?? true,
     ...(input.created_at ? { created_at: input.created_at } : {}),
   }).eq("id", id);
   if (error) throw error;
