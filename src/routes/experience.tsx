@@ -243,18 +243,45 @@ function ExperiencePage() {
             </motion.section>
 
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-              <Button variant="hero" size="xl" className="w-full gap-2" onClick={() => setFilterOpen(true)} disabled={exporting}>
+              <Button variant="hero" size="xl" className="w-full gap-2" onClick={() => setFormatChooserOpen(true)} disabled={exporting}>
                 <FileText className="h-5 w-5" />
-                Export Logbook PDF
+                Export PDF
               </Button>
             </motion.div>
+
+            {/* Format chooser */}
+            <Dialog open={formatChooserOpen} onOpenChange={setFormatChooserOpen}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Choose export format</DialogTitle>
+                </DialogHeader>
+                <div className="flex flex-col gap-3 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => { setExportFormat("amel"); setFormatChooserOpen(false); setFilterOpen(true); }}
+                    className="text-left rounded-xl glass p-4 hover:border-primary/40 transition-all"
+                  >
+                    <p className="text-sm font-bold text-primary">AMEL Professional Logbook</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Premium landscape logbook with cover, licences and full work record.</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setExportFormat("ncaa"); setFormatChooserOpen(false); setFilterOpen(true); }}
+                    className="text-left rounded-xl glass p-4 hover:border-primary/40 transition-all"
+                  >
+                    <p className="text-sm font-bold text-primary">NCAA O-PEL-020 Practical Experience</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Official portrait logbook for licence application. Blank certifier column for handwritten signing.</p>
+                  </button>
+                </div>
+              </DialogContent>
+            </Dialog>
 
             <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
               <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <Filter className="h-4 w-4 text-primary" />
-                    Filter PDF Export
+                    {exportFormat === "ncaa" ? "NCAA O-PEL-020 Filters" : "Filter PDF Export"}
                   </DialogTitle>
                 </DialogHeader>
 
