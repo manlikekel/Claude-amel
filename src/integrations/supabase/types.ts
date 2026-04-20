@@ -125,6 +125,60 @@ export type Database = {
         }
         Relationships: []
       }
+      community_fault_library: {
+        Row: {
+          action_taken: string | null
+          aircraft_model: string | null
+          approved_for_global_search: boolean
+          ata_chapter: string | null
+          country_region: string | null
+          created_at: string
+          fault_description: string
+          id: string
+          is_anonymized: boolean
+          maintenance_reference: string | null
+          manufacturer: string | null
+          root_cause: string | null
+          source_log_id: string
+          system_component: string | null
+          updated_at: string
+        }
+        Insert: {
+          action_taken?: string | null
+          aircraft_model?: string | null
+          approved_for_global_search?: boolean
+          ata_chapter?: string | null
+          country_region?: string | null
+          created_at?: string
+          fault_description: string
+          id?: string
+          is_anonymized?: boolean
+          maintenance_reference?: string | null
+          manufacturer?: string | null
+          root_cause?: string | null
+          source_log_id: string
+          system_component?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action_taken?: string | null
+          aircraft_model?: string | null
+          approved_for_global_search?: boolean
+          ata_chapter?: string | null
+          country_region?: string | null
+          created_at?: string
+          fault_description?: string
+          id?: string
+          is_anonymized?: boolean
+          maintenance_reference?: string | null
+          manufacturer?: string | null
+          root_cause?: string | null
+          source_log_id?: string
+          system_component?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       licences: {
         Row: {
           authority: string | null
@@ -178,10 +232,13 @@ export type Database = {
           id: string
           image_urls: string[]
           is_recurring: boolean
+          maintenance_reference: string | null
           manufacturer: string | null
           registration: string | null
           root_cause: string | null
+          share_to_community: boolean
           symptoms: string[]
+          system_component: string | null
           time_spent_hours: number
           tools_used: string | null
           updated_at: string
@@ -198,10 +255,13 @@ export type Database = {
           id?: string
           image_urls?: string[]
           is_recurring?: boolean
+          maintenance_reference?: string | null
           manufacturer?: string | null
           registration?: string | null
           root_cause?: string | null
+          share_to_community?: boolean
           symptoms?: string[]
+          system_component?: string | null
           time_spent_hours?: number
           tools_used?: string | null
           updated_at?: string
@@ -218,10 +278,13 @@ export type Database = {
           id?: string
           image_urls?: string[]
           is_recurring?: boolean
+          maintenance_reference?: string | null
           manufacturer?: string | null
           registration?: string | null
           root_cause?: string | null
+          share_to_community?: boolean
           symptoms?: string[]
+          system_component?: string | null
           time_spent_hours?: number
           tools_used?: string | null
           updated_at?: string
@@ -242,33 +305,39 @@ export type Database = {
         Row: {
           address: string | null
           ame_licence_no: string | null
+          country_region: string | null
           created_at: string
           email: string | null
           id: string
           name: string | null
           phone: string | null
+          share_to_community_default: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
           address?: string | null
           ame_licence_no?: string | null
+          country_region?: string | null
           created_at?: string
           email?: string | null
           id?: string
           name?: string | null
           phone?: string | null
+          share_to_community_default?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
           address?: string | null
           ame_licence_no?: string | null
+          country_region?: string | null
           created_at?: string
           email?: string | null
           id?: string
           name?: string | null
           phone?: string | null
+          share_to_community_default?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -279,6 +348,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       upsert_aircraft_lookup_cache: {
         Args: {
           p_icao24: string

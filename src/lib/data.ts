@@ -17,6 +17,8 @@ export interface ProfileData {
   phone: string;
   ame_licence_no: string;
   address: string;
+  share_to_community_default?: boolean;
+  country_region?: string;
 }
 
 export interface LicenceEntry {
@@ -63,6 +65,9 @@ export interface LogEntry {
   image_urls: string[];
   voice_note_url: string | null;
   created_at: string;
+  system_component?: string;
+  maintenance_reference?: string;
+  share_to_community?: boolean;
 }
 
 // ============ PROFILE ============
@@ -73,6 +78,8 @@ const EMPTY_PROFILE: ProfileData = {
   phone: "",
   ame_licence_no: "",
   address: "",
+  share_to_community_default: true,
+  country_region: "",
 };
 
 export async function fetchProfile(): Promise<ProfileData> {
@@ -80,7 +87,7 @@ export async function fetchProfile(): Promise<ProfileData> {
   if (!user) return EMPTY_PROFILE;
   const { data, error } = await supabase
     .from("profiles")
-    .select("name,email,phone,ame_licence_no,address")
+    .select("name,email,phone,ame_licence_no,address,share_to_community_default,country_region")
     .eq("user_id", user.id)
     .maybeSingle();
   if (error) {
@@ -93,6 +100,8 @@ export async function fetchProfile(): Promise<ProfileData> {
     phone: data?.phone ?? "",
     ame_licence_no: data?.ame_licence_no ?? "",
     address: data?.address ?? "",
+    share_to_community_default: data?.share_to_community_default ?? true,
+    country_region: data?.country_region ?? "",
   };
 }
 
@@ -107,6 +116,8 @@ export async function saveProfile(p: ProfileData): Promise<void> {
       phone: p.phone,
       ame_licence_no: p.ame_licence_no,
       address: p.address,
+      share_to_community_default: p.share_to_community_default,
+      country_region: p.country_region,
     })
     .eq("user_id", user.id);
   if (error) throw error;
@@ -254,6 +265,9 @@ function rowToLog(r: any): LogEntry {
     image_urls: r.image_urls ?? [],
     voice_note_url: r.voice_note_url ?? null,
     created_at: r.created_at,
+    system_component: r.system_component ?? "",
+    maintenance_reference: r.maintenance_reference ?? "",
+    share_to_community: r.share_to_community ?? true,
   };
 }
 
