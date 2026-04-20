@@ -556,6 +556,29 @@ function LogEntryPage() {
           </Button>
         </motion.div>
       </div>
+
+      {/* First-time community-share onboarding */}
+      {showShareInfo && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowShareInfo(false)}>
+          <div className="w-full max-w-md rounded-2xl surface-opaque p-5" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-primary">Help engineers worldwide</h3>
+            <p className="mt-2 text-sm text-foreground">
+              Your logs can be shared <strong>anonymously</strong> to help other AMEs solve similar issues faster.
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Name, email, phone and exact registration are <strong>never</strong> shared. You can turn this off any time per-log or in Account.
+            </p>
+            <div className="mt-4 flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => { update("share_to_community", false); setShowShareInfo(false); }}>
+                Turn off
+              </Button>
+              <Button variant="hero" className="flex-1" onClick={() => setShowShareInfo(false)}>
+                Continue sharing
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
