@@ -263,6 +263,9 @@ function LogEntryPage() {
         voice_note_url: null as string | null,
         is_recurring: form.is_recurring,
         created_at: form.work_date ? new Date(form.work_date).toISOString() : null,
+        system_component: form.system_component,
+        maintenance_reference: form.maintenance_reference,
+        share_to_community: form.share_to_community,
       };
       if (isEdit && editId) {
         await updateLog(editId, payload);
