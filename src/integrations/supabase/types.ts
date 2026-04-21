@@ -234,6 +234,7 @@ export type Database = {
           is_recurring: boolean
           maintenance_reference: string | null
           manufacturer: string | null
+          organization_id: string | null
           registration: string | null
           root_cause: string | null
           share_to_community: boolean
@@ -243,6 +244,7 @@ export type Database = {
           tools_used: string | null
           updated_at: string
           user_id: string
+          visibility: Database["public"]["Enums"]["log_visibility"]
           voice_note_url: string | null
         }
         Insert: {
@@ -257,6 +259,7 @@ export type Database = {
           is_recurring?: boolean
           maintenance_reference?: string | null
           manufacturer?: string | null
+          organization_id?: string | null
           registration?: string | null
           root_cause?: string | null
           share_to_community?: boolean
@@ -266,6 +269,7 @@ export type Database = {
           tools_used?: string | null
           updated_at?: string
           user_id: string
+          visibility?: Database["public"]["Enums"]["log_visibility"]
           voice_note_url?: string | null
         }
         Update: {
@@ -280,6 +284,7 @@ export type Database = {
           is_recurring?: boolean
           maintenance_reference?: string | null
           manufacturer?: string | null
+          organization_id?: string | null
           registration?: string | null
           root_cause?: string | null
           share_to_community?: boolean
@@ -289,6 +294,7 @@ export type Database = {
           tools_used?: string | null
           updated_at?: string
           user_id?: string
+          visibility?: Database["public"]["Enums"]["log_visibility"]
           voice_note_url?: string | null
         }
         Relationships: [
@@ -299,10 +305,77 @@ export type Database = {
             referencedRelation: "aircraft_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "maintenance_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      organization_members: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          role: Database["public"]["Enums"]["org_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          role?: Database["public"]["Enums"]["org_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          role?: Database["public"]["Enums"]["org_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
+          active_organization_id: string | null
           address: string | null
           ame_licence_no: string | null
           country_region: string | null
@@ -312,10 +385,12 @@ export type Database = {
           name: string | null
           phone: string | null
           share_to_community_default: boolean
+          target_framework: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          active_organization_id?: string | null
           address?: string | null
           ame_licence_no?: string | null
           country_region?: string | null
@@ -325,10 +400,12 @@ export type Database = {
           name?: string | null
           phone?: string | null
           share_to_community_default?: boolean
+          target_framework?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          active_organization_id?: string | null
           address?: string | null
           ame_licence_no?: string | null
           country_region?: string | null
@@ -338,16 +415,29 @@ export type Database = {
           name?: string | null
           phone?: string | null
           share_to_community_default?: boolean
+          target_framework?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_active_organization_id_fkey"
+            columns: ["active_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      is_org_member: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       upsert_aircraft_lookup_cache: {
@@ -388,7 +478,8 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      log_visibility: "personal" | "team" | "public_anon"
+      org_role: "owner" | "admin" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -515,6 +606,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      log_visibility: ["personal", "team", "public_anon"],
+      org_role: ["owner", "admin", "member"],
+    },
   },
 } as const

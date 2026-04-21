@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { PlusCircle, Search, BarChart3, Wrench, Clock, Plane, Loader2 } from "lucide-react";
+import { PlusCircle, Search, BarChart3, Wrench, Clock, Plane, Loader2, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { fetchRecentLogs, computeStats, formatHoursMinutes, type LogEntry, type Stats } from "@/lib/data";
+import { Progress } from "@/components/ui/progress";
+import { fetchRecentLogs, computeStats, fetchProfile, fetchLogs, formatHoursMinutes, type LogEntry, type Stats } from "@/lib/data";
+import { computeReadiness, FRAMEWORKS, type FrameworkId } from "@/lib/licence-frameworks";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
@@ -19,12 +21,27 @@ export const Route = createFileRoute("/")({
 function Dashboard() {
   const [recent, setRecent] = useState<LogEntry[]>([]);
   const [stats, setStats] = useState<Stats>({ totalLogs: 0, aircraftTypes: 0, totalHours: 0, ataChapters: 0 });
+  const [readinessPct, setReadinessPct] = useState<number | null>(null);
+  const [framework, setFramework] = useState<FrameworkId>("NCAA");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([fetchRecentLogs(5), computeStats()]).then(([r, s]) => {
+    Promise.all([fetchRecentLogs(5), computeStats(), fetchProfile(), fetchLogs()]).then(([r, s, p, all]) => {
       setRecent(r);
       setStats(s);
+      const fid = (p.target_framework as FrameworkId) || "NCAA";
+      setFramework(fid);
+      const aircraftTypes = new Set<string>();
+      const ataChapters = new Set<string>();
+      let hours = 0;
+      for (const l of all) {
+        if (l.aircraft_model) aircraftTypes.add(l.aircraft_model.trim().toUpperCase());
+        const code = (l.ata_chapter || "").match(/\d{1,2}/)?.[0];
+        if (code) ataChapters.add(code.padStart(2, "0"));
+        hours += l.time_spent_hours || 0;
+      }
+      const r2 = computeReadiness({ totalHours: hours, totalJobs: all.length, aircraftTypes, ataChapters }, fid);
+      setReadinessPct(r2.overall);
       setLoading(false);
     });
   }, []);
@@ -77,6 +94,27 @@ function Dashboard() {
           <StatCard icon={Wrench} value={stats.totalLogs} label="Jobs" />
           <StatCard icon={Plane} value={stats.aircraftTypes} label="Aircraft" />
           <StatCard icon={Clock} value={formatHoursMinutes(stats.totalHours)} label="Hours" />
+        </motion.div>
+
+        {/* Licence readiness widget */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }} className="mb-7">
+          <Link to="/readiness" className="block">
+            <Card className="p-4 hover:border-primary/40 transition-colors">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Target className="h-4 w-4 text-primary" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {FRAMEWORKS[framework].name} Readiness
+                  </span>
+                </div>
+                <span className="text-2xl font-bold text-primary drop-shadow-[0_0_8px_oklch(0.78_0.12_80/0.4)]">
+                  {readinessPct ?? "—"}%
+                </span>
+              </div>
+              <Progress value={readinessPct ?? 0} className="h-1.5" />
+              <p className="mt-2 text-[11px] text-muted-foreground">Tap to see weak areas and next focus.</p>
+            </Card>
+          </Link>
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>

@@ -1,10 +1,11 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Search, BarChart3, User } from "lucide-react";
+import { Home, Search, Target, BarChart3, User } from "lucide-react";
 
 const navItems = [
   { to: "/" as const, icon: Home, label: "Logbook" },
   { to: "/search" as const, icon: Search, label: "Search" },
-  { to: "/experience" as const, icon: BarChart3, label: "Experience" },
+  { to: "/readiness" as const, icon: Target, label: "Readiness" },
+  { to: "/experience" as const, icon: BarChart3, label: "Stats" },
   { to: "/account" as const, icon: User, label: "Account" },
 ];
 
@@ -22,7 +23,7 @@ export function BottomNav() {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`relative flex flex-col items-center gap-0.5 rounded-2xl px-4 py-2 text-[10px] transition-all ${
+                className={`relative flex flex-col items-center gap-0.5 rounded-2xl px-3 py-2 text-[10px] transition-all ${
                   isActive ? "text-primary-foreground" : "text-muted-foreground"
                 }`}
               >
