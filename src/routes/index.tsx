@@ -76,7 +76,7 @@ function Dashboard() {
         >
           <StatCard icon={Wrench} value={stats.totalLogs} label="Jobs" />
           <StatCard icon={Plane} value={stats.aircraftTypes} label="Aircraft" />
-          <StatCard icon={Clock} value={stats.totalHours} label="Hours" />
+          <StatCard icon={Clock} value={formatHoursMinutes(stats.totalHours)} label="Hours" />
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
