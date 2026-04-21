@@ -363,6 +363,8 @@ export async function updateLog(id: string, input: LogInput): Promise<void> {
     system_component: input.system_component ?? null,
     maintenance_reference: input.maintenance_reference ?? null,
     share_to_community: input.share_to_community ?? true,
+    visibility: input.visibility ?? "personal",
+    organization_id: input.organization_id ?? null,
     ...(input.created_at ? { created_at: input.created_at } : {}),
   }).eq("id", id);
   if (error) throw error;
