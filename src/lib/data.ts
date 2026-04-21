@@ -11,6 +11,8 @@ import { normalizeRegistration } from "./aircraft";
 
 // ============ TYPES (mirror Supabase rows but flattened for UI) ============
 
+export type LicenceFramework = "NCAA" | "EASA" | "FAA";
+
 export interface ProfileData {
   name: string;
   email: string;
@@ -19,6 +21,8 @@ export interface ProfileData {
   address: string;
   share_to_community_default?: boolean;
   country_region?: string;
+  target_framework?: LicenceFramework | null;
+  active_organization_id?: string | null;
 }
 
 export interface LicenceEntry {
@@ -48,6 +52,8 @@ export interface AircraftProfile {
   is_manual_override: boolean;
 }
 
+export type LogVisibility = "personal" | "team" | "public_anon";
+
 export interface LogEntry {
   id: string;
   aircraft_profile_id: string | null;
@@ -68,6 +74,8 @@ export interface LogEntry {
   system_component?: string;
   maintenance_reference?: string;
   share_to_community?: boolean;
+  visibility?: LogVisibility;
+  organization_id?: string | null;
 }
 
 // ============ PROFILE ============
@@ -80,6 +88,8 @@ const EMPTY_PROFILE: ProfileData = {
   address: "",
   share_to_community_default: true,
   country_region: "",
+  target_framework: null,
+  active_organization_id: null,
 };
 
 export async function fetchProfile(): Promise<ProfileData> {
@@ -87,7 +97,7 @@ export async function fetchProfile(): Promise<ProfileData> {
   if (!user) return EMPTY_PROFILE;
   const { data, error } = await supabase
     .from("profiles")
-    .select("name,email,phone,ame_licence_no,address,share_to_community_default,country_region")
+    .select("name,email,phone,ame_licence_no,address,share_to_community_default,country_region,target_framework,active_organization_id")
     .eq("user_id", user.id)
     .maybeSingle();
   if (error) {
@@ -102,6 +112,8 @@ export async function fetchProfile(): Promise<ProfileData> {
     address: data?.address ?? "",
     share_to_community_default: data?.share_to_community_default ?? true,
     country_region: data?.country_region ?? "",
+    target_framework: (data?.target_framework as any) ?? null,
+    active_organization_id: data?.active_organization_id ?? null,
   };
 }
 
@@ -118,6 +130,8 @@ export async function saveProfile(p: ProfileData): Promise<void> {
       address: p.address,
       share_to_community_default: p.share_to_community_default,
       country_region: p.country_region,
+      target_framework: p.target_framework ?? null,
+      active_organization_id: p.active_organization_id ?? null,
     })
     .eq("user_id", user.id);
   if (error) throw error;
