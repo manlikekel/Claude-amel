@@ -57,8 +57,8 @@ function drawHeader(doc: jsPDF, profile: ProfileData, pageW: number) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   const yId = 32;
-  doc.text(`Name of Applicant: ${profile.name || "________________________"}`, 15, yId);
-  doc.text(`Licence No.: ${profile.ame_licence_no || "____________"}`, pageW - 15, yId, { align: "right" });
+  doc.text(`NAME OF APPLICANT: ${(profile.name || "________________________").toUpperCase()}`, 15, yId);
+  doc.text(`LICENCE NO.: ${(profile.ame_licence_no || "____________").toUpperCase()}`, pageW - 15, yId, { align: "right" });
 }
 
 function drawTable(
@@ -81,13 +81,13 @@ function drawTable(
         tools_used: log.tools_used,
       },
       { includeAta },
-    );
+    ).toUpperCase();
     const date = formatNcaaDate(log.created_at);
     return [reg, details, date, ""];
   });
 
   if (body.length === 0) {
-    body.push(["—", "No maintenance entries match the selected filters.", "—", ""]);
+    body.push(["—", "NO MAINTENANCE ENTRIES MATCH THE SELECTED FILTERS.", "—", ""]);
   }
 
   autoTable(doc, {

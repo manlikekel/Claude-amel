@@ -39,7 +39,15 @@ function AccountPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await saveProfile(profile);
+      const up = (s: string | null | undefined) => (s ?? "").toUpperCase();
+      await saveProfile({
+        ...profile,
+        name: up(profile.name),
+        ame_licence_no: up(profile.ame_licence_no),
+        address: up(profile.address),
+        country_region: up(profile.country_region),
+        phone: up(profile.phone),
+      });
       toast.success("Profile saved");
     } catch (err: any) {
       toast.error(err?.message ?? "Failed to save profile");
@@ -82,6 +90,7 @@ function AccountPage() {
                     value={profile.name}
                     onChange={(e) => setProfile({ ...profile, name: e.target.value })}
                     placeholder="John Doe"
+                    className="uppercase placeholder:normal-case"
                   />
                 </Field>
                 <Field label="Phone">
@@ -89,6 +98,7 @@ function AccountPage() {
                     value={profile.phone}
                     onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
                     placeholder="+234 ..."
+                    className="uppercase placeholder:normal-case"
                   />
                 </Field>
                 <Field label="AME Licence No.">
@@ -96,6 +106,7 @@ function AccountPage() {
                     value={profile.ame_licence_no}
                     onChange={(e) => setProfile({ ...profile, ame_licence_no: e.target.value })}
                     placeholder="e.g. NCAA/AME/0123"
+                    className="uppercase placeholder:normal-case"
                   />
                 </Field>
                 <Field label="Address">
@@ -103,6 +114,7 @@ function AccountPage() {
                     value={profile.address}
                     onChange={(e) => setProfile({ ...profile, address: e.target.value })}
                     placeholder="Hangar / Base address"
+                    className="uppercase placeholder:normal-case"
                   />
                 </Field>
                 <Field label="Country / Region (optional)">
@@ -110,6 +122,7 @@ function AccountPage() {
                     value={profile.country_region ?? ""}
                     onChange={(e) => setProfile({ ...profile, country_region: e.target.value })}
                     placeholder="e.g. Nigeria, West Africa"
+                    className="uppercase placeholder:normal-case"
                   />
                 </Field>
 

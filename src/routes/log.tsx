@@ -365,6 +365,7 @@ function LogEntryPage() {
               value={form.aircraft_model}
               placeholder="e.g. CRJ200"
               onChange={(e) => update("aircraft_model", e.target.value)}
+              className="uppercase placeholder:normal-case"
             />
           </FieldGroup>
 
@@ -373,6 +374,7 @@ function LogEntryPage() {
               value={form.manufacturer}
               placeholder="e.g. Bombardier"
               onChange={(e) => update("manufacturer", e.target.value)}
+              className="uppercase placeholder:normal-case"
             />
           </FieldGroup>
 
@@ -421,7 +423,7 @@ function LogEntryPage() {
                 placeholder="What exactly happened? (EICAS, symptoms, conditions) — or tap the mic to dictate"
                 onChange={(e) => update("fault_description", e.target.value)}
                 rows={4}
-                className="flex w-full rounded-xl border border-glass-border bg-glass px-3 py-2 pr-12 text-sm text-foreground backdrop-blur-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="flex w-full rounded-xl border border-glass-border bg-glass px-3 py-2 pr-12 text-sm text-foreground uppercase backdrop-blur-sm placeholder:normal-case placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
               <button
                 type="button"
@@ -448,13 +450,14 @@ function LogEntryPage() {
                 placeholder="Add tags (low pressure, high EGT…)"
                 onChange={(e) => setSymptomInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSymptom())}
+                className="uppercase placeholder:normal-case"
               />
               <Button variant="secondary" size="default" onClick={addSymptom}>Add</Button>
             </div>
             {form.symptoms.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {form.symptoms.map((s) => (
-                  <span key={s} className="inline-flex items-center gap-1 rounded-full glass-subtle px-2.5 py-0.5 text-xs font-medium text-primary">
+                  <span key={s} className="inline-flex items-center gap-1 rounded-full glass-subtle px-2.5 py-0.5 text-xs font-medium uppercase text-primary">
                     {s}
                     <button onClick={() => removeSymptom(s)} className="ml-0.5 text-primary/60 hover:text-primary">×</button>
                   </span>
@@ -464,7 +467,7 @@ function LogEntryPage() {
           </FieldGroup>
 
           <FieldGroup label="Root Cause">
-            <Input value={form.root_cause} placeholder="What was the actual issue?" onChange={(e) => update("root_cause", e.target.value)} />
+            <Input value={form.root_cause} placeholder="What was the actual issue?" onChange={(e) => update("root_cause", e.target.value)} className="uppercase placeholder:normal-case" />
           </FieldGroup>
 
           <FieldGroup label="Action Taken">
@@ -473,7 +476,7 @@ function LogEntryPage() {
               placeholder="What did you do to fix it?"
               onChange={(e) => update("action_taken", e.target.value)}
               rows={2}
-              className="flex w-full rounded-xl border border-glass-border bg-glass px-3 py-2 text-sm text-foreground backdrop-blur-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="flex w-full rounded-xl border border-glass-border bg-glass px-3 py-2 text-sm text-foreground uppercase backdrop-blur-sm placeholder:normal-case placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </FieldGroup>
 
@@ -482,6 +485,7 @@ function LogEntryPage() {
               value={form.system_component}
               placeholder="e.g. air conditioning system, ram air fan, landing gear"
               onChange={(e) => update("system_component", e.target.value)}
+              className="uppercase placeholder:normal-case"
             />
             <p className="mt-1 text-[10px] text-muted-foreground">Improves NCAA O-PEL-020 wording.</p>
           </FieldGroup>
@@ -491,11 +495,12 @@ function LogEntryPage() {
               value={form.maintenance_reference}
               placeholder="e.g. AMM 21-51-00, FIM 21-00-00, SRM 32-00-00"
               onChange={(e) => update("maintenance_reference", e.target.value)}
+              className="uppercase placeholder:normal-case"
             />
           </FieldGroup>
 
           <FieldGroup label="Tools / Manual Used">
-            <Input value={form.tools_used} placeholder="Manual, AMM ref, tools used" onChange={(e) => update("tools_used", e.target.value)} />
+            <Input value={form.tools_used} placeholder="Manual, AMM ref, tools used" onChange={(e) => update("tools_used", e.target.value)} className="uppercase placeholder:normal-case" />
           </FieldGroup>
 
           <FieldGroup label="Time Spent (hours)">
