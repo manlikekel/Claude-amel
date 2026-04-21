@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 
 const STORAGE_PREFIX = "amel_onboarding_seen_";
+const DISMISS_PREFIX = "amel_onboarding_dismissed_";
 
 const STEPS = [
   {
@@ -38,19 +39,24 @@ export function OnboardingTour() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
+  const [dontShow, setDontShow] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     const key = STORAGE_PREFIX + user.id;
+    const dismissedKey = DISMISS_PREFIX + user.id;
+    if (localStorage.getItem(dismissedKey)) return;
     if (!localStorage.getItem(key)) {
-      // small delay so the app renders behind it first
       const t = setTimeout(() => setOpen(true), 400);
       return () => clearTimeout(t);
     }
   }, [user]);
 
   const finish = () => {
-    if (user) localStorage.setItem(STORAGE_PREFIX + user.id, "1");
+    if (user) {
+      localStorage.setItem(STORAGE_PREFIX + user.id, "1");
+      if (dontShow) localStorage.setItem(DISMISS_PREFIX + user.id, "1");
+    }
     setOpen(false);
     setStep(0);
   };
@@ -113,9 +119,19 @@ export function OnboardingTour() {
             </Button>
           </div>
 
+          <label className="mt-4 flex items-center gap-2 cursor-pointer text-[11px] text-muted-foreground hover:text-foreground transition-colors">
+            <input
+              type="checkbox"
+              checked={dontShow}
+              onChange={(e) => setDontShow(e.target.checked)}
+              className="h-3.5 w-3.5 rounded border-glass-border accent-primary cursor-pointer"
+            />
+            Don't show this next time
+          </label>
+
           <button
             onClick={finish}
-            className="mt-3 w-full text-center text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+            className="mt-2 w-full text-center text-[11px] text-muted-foreground hover:text-foreground transition-colors"
           >
             Skip tour
           </button>
