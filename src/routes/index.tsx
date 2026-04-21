@@ -47,7 +47,7 @@ function Dashboard() {
           className="mb-7 flex flex-col gap-3"
         >
           <Button variant="hero" size="xl" className="w-full justify-start gap-3" asChild>
-            <Link to="/log">
+            <Link to="/log" search={{ id: undefined }}>
               <PlusCircle className="h-5 w-5" />
               Log New Task
             </Link>

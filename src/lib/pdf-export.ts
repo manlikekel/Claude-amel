@@ -93,8 +93,16 @@ function drawLicencePage(doc: jsPDF, licences: LicenceEntry[], pageW: number) {
 
   autoTable(doc, {
     startY: 28,
-    head: [["Authority", "Type", "Licence No.", "Ratings", "Issue Date", "Expiry Date", "Remarks"]],
-    body: licences.map((l) => [l.authority, l.licence_type, l.licence_number, l.ratings, l.issue_date, l.expiry_date, l.remarks]),
+    head: [["AUTHORITY", "TYPE", "LICENCE NO.", "RATINGS", "ISSUE DATE", "EXPIRY DATE", "REMARKS"]],
+    body: licences.map((l) => [
+      (l.authority || "").toUpperCase(),
+      (l.licence_type || "").toUpperCase(),
+      (l.licence_number || "").toUpperCase(),
+      (l.ratings || "").toUpperCase(),
+      l.issue_date,
+      l.expiry_date,
+      (l.remarks || "").toUpperCase(),
+    ]),
     styles: { fontSize: 9, cellPadding: 3, textColor: [20, 20, 20], lineColor: [200, 200, 200], lineWidth: 0.3 },
     headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: "bold" },
     alternateRowStyles: { fillColor: [248, 248, 248] },
@@ -123,25 +131,26 @@ function drawLogPages(doc: jsPDF, logs: LogEntry[], profile: ProfileData, pageW:
       const date = new Date(l.created_at);
       const dateStr = `${date.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" })}\n${date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
       const ata = l.ata_chapter.split(" ")[0];
+      const U = (s: string) => (s || "").toUpperCase();
       // Build a personal, narrative-style task description.
       const parts: string[] = [];
       if (l.fault_description) {
-        parts.push(`Reported: ${l.fault_description.trim()}`);
+        parts.push(`REPORTED: ${U(l.fault_description.trim())}`);
       }
       if (l.symptoms && l.symptoms.length > 0) {
-        parts.push(`Symptoms observed: ${l.symptoms.join(", ")}.`);
+        parts.push(`SYMPTOMS OBSERVED: ${U(l.symptoms.join(", "))}.`);
       }
       if (l.root_cause) {
-        parts.push(`Root cause identified as ${l.root_cause.trim()}.`);
+        parts.push(`ROOT CAUSE IDENTIFIED AS ${U(l.root_cause.trim())}.`);
       }
       if (l.action_taken) {
-        parts.push(`I ${l.action_taken.trim().replace(/^[A-Z]/, (c) => c.toLowerCase())}.`);
+        parts.push(`I ${U(l.action_taken.trim())}.`);
       }
       const task = parts.join(" ");
       return [
-        dateStr, l.aircraft_model || "—", l.registration || "—", ata, task,
-        l.root_cause ? "Corrective" : "Routine",
-        l.tools_used || "-",
+        dateStr, U(l.aircraft_model) || "—", U(l.registration) || "—", U(ata), task,
+        l.root_cause ? "CORRECTIVE" : "ROUTINE",
+        U(l.tools_used) || "-",
         String(l.time_spent_hours), "",
       ];
     }),
