@@ -282,6 +282,8 @@ function rowToLog(r: any): LogEntry {
     system_component: r.system_component ?? "",
     maintenance_reference: r.maintenance_reference ?? "",
     share_to_community: r.share_to_community ?? true,
+    visibility: (r.visibility as LogVisibility) ?? "personal",
+    organization_id: r.organization_id ?? null,
   };
 }
 
@@ -335,6 +337,8 @@ export async function saveLog(input: LogInput): Promise<void> {
     system_component: input.system_component ?? null,
     maintenance_reference: input.maintenance_reference ?? null,
     share_to_community: input.share_to_community ?? true,
+    visibility: input.visibility ?? "personal",
+    organization_id: input.organization_id ?? null,
     ...(input.created_at ? { created_at: input.created_at } : {}),
   });
   if (error) throw error;
