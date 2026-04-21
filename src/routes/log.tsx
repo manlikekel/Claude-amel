@@ -196,6 +196,8 @@ function LogEntryPage() {
         system_component: log.system_component ?? "",
         maintenance_reference: log.maintenance_reference ?? "",
         share_to_community: log.share_to_community ?? true,
+        visibility: (log.visibility as LogVisibility) ?? "personal",
+        organization_id: log.organization_id ?? null,
       });
       setLoadingEntry(false);
     });
