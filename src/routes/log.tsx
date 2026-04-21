@@ -247,24 +247,25 @@ function LogEntryPage() {
     if (!form.fault_description) { toast.error("Add a fault description"); return; }
     setSaving(true);
     try {
+      const up = (s: string) => (s || "").toUpperCase();
       const payload = {
         aircraft_profile_id: form.aircraft_profile_id,
         registration: form.registration ? normalizeRegistration(form.registration) : "",
-        aircraft_model: form.aircraft_model,
-        manufacturer: form.manufacturer,
-        ata_chapter: form.ata_chapter,
-        fault_description: form.fault_description,
-        symptoms: form.symptoms,
-        root_cause: form.root_cause,
-        action_taken: form.action_taken,
-        tools_used: form.tools_used,
+        aircraft_model: up(form.aircraft_model),
+        manufacturer: up(form.manufacturer),
+        ata_chapter: up(form.ata_chapter),
+        fault_description: up(form.fault_description),
+        symptoms: form.symptoms.map(up),
+        root_cause: up(form.root_cause),
+        action_taken: up(form.action_taken),
+        tools_used: up(form.tools_used),
         time_spent_hours: parseFloat(form.time_spent_hours) || 0,
         image_urls: [] as string[],
         voice_note_url: null as string | null,
         is_recurring: form.is_recurring,
         created_at: form.work_date ? new Date(form.work_date).toISOString() : null,
-        system_component: form.system_component,
-        maintenance_reference: form.maintenance_reference,
+        system_component: up(form.system_component),
+        maintenance_reference: up(form.maintenance_reference),
         share_to_community: form.share_to_community,
       };
       if (isEdit && editId) {
