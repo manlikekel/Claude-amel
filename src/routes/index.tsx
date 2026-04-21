@@ -123,7 +123,7 @@ function LogCard({ log }: { log: LogEntry }) {
       <Card className="p-3 hover:border-primary/40 transition-colors">
         <div className="mb-1 flex items-center justify-between">
           <span className="text-xs font-semibold text-primary">
-            {log.aircraft_model || log.registration || "Aircraft"} · ATA {ata}
+            {[log.registration, log.aircraft_model].filter(Boolean).join(" · ") || "Aircraft"} · ATA {ata}
           </span>
           {hours && (
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
