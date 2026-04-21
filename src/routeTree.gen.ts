@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as ReadinessRouteImport } from './routes/readiness'
 import { Route as LogRouteImport } from './routes/log'
 import { Route as ExperienceRouteImport } from './routes/experience'
 import { Route as AccountRouteImport } from './routes/account'
@@ -18,6 +19,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReadinessRoute = ReadinessRouteImport.update({
+  id: '/readiness',
+  path: '/readiness',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LogRoute = LogRouteImport.update({
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/experience': typeof ExperienceRoute
   '/log': typeof LogRoute
+  '/readiness': typeof ReadinessRoute
   '/search': typeof SearchRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/experience': typeof ExperienceRoute
   '/log': typeof LogRoute
+  '/readiness': typeof ReadinessRoute
   '/search': typeof SearchRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,28 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/experience': typeof ExperienceRoute
   '/log': typeof LogRoute
+  '/readiness': typeof ReadinessRoute
   '/search': typeof SearchRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/account' | '/experience' | '/log' | '/search'
+  fullPaths:
+    | '/'
+    | '/account'
+    | '/experience'
+    | '/log'
+    | '/readiness'
+    | '/search'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/account' | '/experience' | '/log' | '/search'
-  id: '__root__' | '/' | '/account' | '/experience' | '/log' | '/search'
+  to: '/' | '/account' | '/experience' | '/log' | '/readiness' | '/search'
+  id:
+    | '__root__'
+    | '/'
+    | '/account'
+    | '/experience'
+    | '/log'
+    | '/readiness'
+    | '/search'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +98,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   ExperienceRoute: typeof ExperienceRoute
   LogRoute: typeof LogRoute
+  ReadinessRoute: typeof ReadinessRoute
   SearchRoute: typeof SearchRoute
 }
 
@@ -86,6 +109,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/readiness': {
+      id: '/readiness'
+      path: '/readiness'
+      fullPath: '/readiness'
+      preLoaderRoute: typeof ReadinessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/log': {
@@ -124,6 +154,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   ExperienceRoute: ExperienceRoute,
   LogRoute: LogRoute,
+  ReadinessRoute: ReadinessRoute,
   SearchRoute: SearchRoute,
 }
 export const routeTree = rootRouteImport
