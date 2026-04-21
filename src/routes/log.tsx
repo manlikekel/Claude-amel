@@ -9,8 +9,11 @@ import { Card } from "@/components/ui/card";
 import {
   saveLog, updateLog, deleteLog, fetchLog,
   findAircraftByRegistration, upsertAircraftProfile,
+  fetchProfile,
   ATA_CHAPTERS,
+  type LogVisibility,
 } from "@/lib/data";
+import { fetchMyOrganizations, type OrganizationMembership } from "@/lib/organizations";
 import { lookupAircraft } from "@/lib/aircraft-lookup.functions";
 import { normalizeRegistration, looksLikeRegistration } from "@/lib/aircraft";
 import { motion } from "framer-motion";
@@ -49,7 +52,11 @@ function LogEntryPage() {
     system_component: "",
     maintenance_reference: "",
     share_to_community: true,
+    visibility: "personal" as LogVisibility,
+    organization_id: null as string | null,
   });
+  const [memberships, setMemberships] = useState<OrganizationMembership[]>([]);
+  const [activeOrgId, setActiveOrgId] = useState<string | null>(null);
   const [showShareInfo, setShowShareInfo] = useState(false);
   const [symptomInput, setSymptomInput] = useState("");
   const [ataSearch, setAtaSearch] = useState("");
@@ -100,11 +107,41 @@ function LogEntryPage() {
       if (data?.error) throw new Error(data.error);
       const transcript = (data?.text ?? "").trim();
       if (!transcript) { toast.error("Couldn't pick anything up — try again"); return; }
+      // Append to fault description first so user always sees raw transcript
       setForm((p) => ({
         ...p,
         fault_description: p.fault_description ? `${p.fault_description}\n${transcript}` : transcript,
       }));
-      toast.success("Transcribed");
+      toast.success("Transcribed — parsing…");
+      // Then run AI parser to extract structured fields
+      try {
+        const { data: parsed, error: pErr } = await supabase.functions.invoke("parse-log-voice", {
+          body: { transcript, chapters: ATA_CHAPTERS },
+        });
+        if (pErr) throw pErr;
+        if (parsed?.error) throw new Error(parsed.error);
+        setForm((p) => ({
+          ...p,
+          registration: parsed.registration?.toUpperCase() || p.registration,
+          aircraft_model: parsed.aircraft_model?.toUpperCase() || p.aircraft_model,
+          manufacturer: parsed.manufacturer?.toUpperCase() || p.manufacturer,
+          ata_chapter: parsed.ata_chapter || p.ata_chapter,
+          fault_description: parsed.fault_description?.toUpperCase() || p.fault_description,
+          action_taken: parsed.action_taken?.toUpperCase() || p.action_taken,
+          root_cause: parsed.root_cause?.toUpperCase() || p.root_cause,
+          system_component: parsed.system_component?.toUpperCase() || p.system_component,
+          maintenance_reference: parsed.maintenance_reference?.toUpperCase() || p.maintenance_reference,
+          symptoms: Array.isArray(parsed.symptoms) && parsed.symptoms.length > 0
+            ? Array.from(new Set([...p.symptoms, ...parsed.symptoms.map((s: string) => s.toUpperCase())]))
+            : p.symptoms,
+        }));
+        // Auto-trigger registration lookup if we got one
+        if (parsed.registration) setTimeout(() => runLookup(parsed.registration), 100);
+        toast.success("Form pre-filled from voice");
+      } catch (e: any) {
+        console.error("parse failed", e);
+        // Non-fatal — transcript is already in fault_description
+      }
     } catch (e: any) {
       toast.error(e?.message ?? "Transcription failed");
     } finally {
