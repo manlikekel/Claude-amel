@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import {
   computeExperience, computeStats,
   fetchLicences, saveLicence, updateLicence, deleteLicence,
-  fetchProfile, fetchLogs,
+  fetchProfile, fetchLogs, formatHoursMinutes,
   type LicenceEntry, type LogEntry,
 } from "@/lib/data";
 import { generateLogbookPDF } from "@/lib/pdf-export";
@@ -208,7 +208,7 @@ function ExperiencePage() {
                       <Card key={type} className="p-3">
                         <div className="mb-1 flex items-center justify-between">
                           <span className="text-sm font-medium text-foreground">{type}</span>
-                          <span className="text-xs text-muted-foreground">{info.hours}h · {info.jobs} jobs</span>
+                          <span className="text-xs text-muted-foreground">{formatHoursMinutes(info.hours)} · {info.jobs} jobs</span>
                         </div>
                         <div className="h-2 w-full rounded-full bg-muted/50">
                           <motion.div className="h-2 rounded-full bg-primary" initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6 }} />

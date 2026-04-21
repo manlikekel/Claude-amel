@@ -42,7 +42,8 @@ function LogEntryPage() {
     root_cause: "",
     action_taken: "",
     tools_used: "",
-    time_spent_hours: "",
+    time_hours: "",
+    time_minutes: "",
     is_recurring: false,
     work_date: toLocalDateTimeInput(new Date()),
     system_component: "",
@@ -151,7 +152,8 @@ function LogEntryPage() {
         root_cause: log.root_cause,
         action_taken: log.action_taken,
         tools_used: log.tools_used,
-        time_spent_hours: log.time_spent_hours ? String(log.time_spent_hours) : "",
+        time_hours: log.time_spent_hours ? String(Math.floor(log.time_spent_hours)) : "",
+        time_minutes: log.time_spent_hours ? String(Math.round((log.time_spent_hours % 1) * 60)) : "",
         is_recurring: log.is_recurring,
         work_date: toLocalDateTimeInput(new Date(log.created_at)),
         system_component: log.system_component ?? "",
@@ -259,7 +261,7 @@ function LogEntryPage() {
         root_cause: up(form.root_cause),
         action_taken: up(form.action_taken),
         tools_used: up(form.tools_used),
-        time_spent_hours: parseFloat(form.time_spent_hours) || 0,
+        time_spent_hours: (parseInt(form.time_hours) || 0) + (parseInt(form.time_minutes) || 0) / 60,
         image_urls: [] as string[],
         voice_note_url: null as string | null,
         is_recurring: form.is_recurring,
@@ -503,8 +505,38 @@ function LogEntryPage() {
             <Input value={form.tools_used} placeholder="Manual, AMM ref, tools used" onChange={(e) => update("tools_used", e.target.value)} className="uppercase placeholder:normal-case" />
           </FieldGroup>
 
-          <FieldGroup label="Time Spent (hours)">
-            <Input value={form.time_spent_hours} placeholder="e.g. 1.5" type="number" step="0.5" onChange={(e) => update("time_spent_hours", e.target.value)} />
+          <FieldGroup label="Time Spent">
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Input
+                  value={form.time_hours}
+                  placeholder="Hours"
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputMode="numeric"
+                  onChange={(e) => update("time_hours", e.target.value.replace(/[^0-9]/g, ""))}
+                />
+                <p className="mt-1 text-[10px] text-muted-foreground text-center">Hours</p>
+              </div>
+              <div className="flex-1">
+                <Input
+                  value={form.time_minutes}
+                  placeholder="Minutes"
+                  type="number"
+                  min="0"
+                  max="59"
+                  step="1"
+                  inputMode="numeric"
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/[^0-9]/g, "");
+                    const n = v === "" ? "" : String(Math.min(59, parseInt(v)));
+                    update("time_minutes", n);
+                  }}
+                />
+                <p className="mt-1 text-[10px] text-muted-foreground text-center">Minutes</p>
+              </div>
+            </div>
           </FieldGroup>
 
           <FieldGroup label="Date & Time of Work">

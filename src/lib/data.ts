@@ -411,6 +411,15 @@ export async function computeExperience(): Promise<{
   return { byAircraft, byAta, totalJobs: logs.length };
 }
 
+/** Format decimal hours as "Xh Ym" (e.g. 1.5 -> "1h 30m"). */
+export function formatHoursMinutes(hours: number): string {
+  if (!hours || hours <= 0) return "0h 0m";
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  if (m === 60) return `${h + 1}h 0m`;
+  return `${h}h ${m}m`;
+}
+
 // ============ CONSTANTS ============
 
 export const ATA_CHAPTERS = [

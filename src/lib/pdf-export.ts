@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import type { LogEntry, LicenceEntry, ProfileData } from "./data";
+import { type LogEntry, type LicenceEntry, type ProfileData, formatHoursMinutes } from "./data";
 
 interface PDFInput {
   logs: LogEntry[];
@@ -151,7 +151,7 @@ function drawLogPages(doc: jsPDF, logs: LogEntry[], profile: ProfileData, pageW:
         dateStr, U(l.aircraft_model) || "—", U(l.registration) || "—", U(ata), task,
         l.root_cause ? "CORRECTIVE" : "ROUTINE",
         U(l.tools_used) || "-",
-        String(l.time_spent_hours), "",
+        formatHoursMinutes(l.time_spent_hours), "",
       ];
     }),
     styles: {

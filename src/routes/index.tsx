@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { PlusCircle, Search, BarChart3, Wrench, Clock, Plane, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { fetchRecentLogs, computeStats, type LogEntry, type Stats } from "@/lib/data";
+import { fetchRecentLogs, computeStats, formatHoursMinutes, type LogEntry, type Stats } from "@/lib/data";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
@@ -76,7 +76,7 @@ function Dashboard() {
         >
           <StatCard icon={Wrench} value={stats.totalLogs} label="Jobs" />
           <StatCard icon={Plane} value={stats.aircraftTypes} label="Aircraft" />
-          <StatCard icon={Clock} value={stats.totalHours} label="Hours" />
+          <StatCard icon={Clock} value={formatHoursMinutes(stats.totalHours)} label="Hours" />
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
@@ -105,7 +105,7 @@ function Dashboard() {
   );
 }
 
-function StatCard({ icon: Icon, value, label }: { icon: React.ElementType; value: number; label: string }) {
+function StatCard({ icon: Icon, value, label }: { icon: React.ElementType; value: number | string; label: string }) {
   return (
     <Card className="flex flex-col items-center p-4">
       <Icon className="mb-1.5 h-4 w-4 text-primary" />
@@ -117,7 +117,7 @@ function StatCard({ icon: Icon, value, label }: { icon: React.ElementType; value
 
 function LogCard({ log }: { log: LogEntry }) {
   const ata = log.ata_chapter.split(" – ")[0] || log.ata_chapter || "—";
-  const hours = log.time_spent_hours ? `${log.time_spent_hours}h` : "";
+  const hours = log.time_spent_hours ? formatHoursMinutes(log.time_spent_hours) : "";
   return (
     <Link to="/log" search={{ id: log.id }}>
       <Card className="p-3 hover:border-primary/40 transition-colors">
