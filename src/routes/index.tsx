@@ -105,7 +105,7 @@ function Dashboard() {
   );
 }
 
-function StatCard({ icon: Icon, value, label }: { icon: React.ElementType; value: number; label: string }) {
+function StatCard({ icon: Icon, value, label }: { icon: React.ElementType; value: number | string; label: string }) {
   return (
     <Card className="flex flex-col items-center p-4">
       <Icon className="mb-1.5 h-4 w-4 text-primary" />
