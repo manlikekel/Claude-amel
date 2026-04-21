@@ -308,6 +308,8 @@ function LogEntryPage() {
         system_component: up(form.system_component),
         maintenance_reference: up(form.maintenance_reference),
         share_to_community: form.share_to_community,
+        visibility: form.visibility,
+        organization_id: form.visibility === "team" ? (form.organization_id ?? activeOrgId) : null,
       };
       if (isEdit && editId) {
         await updateLog(editId, payload);
