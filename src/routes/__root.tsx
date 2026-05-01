@@ -71,11 +71,21 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   return (
-    <AuthGate>
-      <Outlet />
-      <BottomNav />
-      <OnboardingTour />
-      <Toaster position="top-center" />
-    </AuthGate>
+    <ThemeProvider>
+      <TabAccentSync />
+      <AuthGate>
+        <Outlet />
+        <BottomNav />
+        <OnboardingTour />
+        <LicenceExpiryToast />
+        <Toaster
+          position="top-center"
+          offset={20}
+          richColors
+          closeButton
+          toastOptions={{ duration: 4000 }}
+        />
+      </AuthGate>
+    </ThemeProvider>
   );
 }
