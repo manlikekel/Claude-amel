@@ -3,6 +3,9 @@ import { BottomNav } from "@/components/BottomNav";
 import { AuthGate } from "@/components/AuthGate";
 import { OnboardingTour } from "@/components/OnboardingTour";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/hooks/use-theme";
+import { TabAccentSync } from "@/hooks/use-tab-accent";
+import { LicenceExpiryToast } from "@/components/LicenceExpiryToast";
 
 import appCss from "../styles.css?url";
 
