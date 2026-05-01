@@ -1,16 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LogOut, Save, Loader2, Mail, Users, Plus, LogIn, Target, Copy, Check } from "lucide-react";
+import {
+  LogOut, Save, Loader2, Mail, Users, Plus, LogIn, Target, Copy, Check,
+  KeyRound, Sun, Moon, ShieldCheck, Trash2, Plane,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
-import { fetchProfile, saveProfile, type ProfileData, type LicenceFramework } from "@/lib/data";
+import { useTheme } from "@/hooks/use-theme";
+import {
+  fetchProfile, saveProfile, type ProfileData, type LicenceFramework,
+  fetchLicences, saveLicence, updateLicence, deleteLicence, type LicenceEntry,
+} from "@/lib/data";
 import {
   fetchMyOrganizations, createOrganization, joinOrganizationBySlug,
   leaveOrganization, setActiveOrganization, type OrganizationMembership,
 } from "@/lib/organizations";
 import { FRAMEWORKS, type FrameworkId } from "@/lib/licence-frameworks";
+import { getLicenceStatus } from "@/lib/licence-status";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
