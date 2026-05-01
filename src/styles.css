@@ -207,6 +207,11 @@
       radial-gradient(ellipse at bottom right, oklch(0.16 0.05 25 / 0.4), transparent 55%);
     background-attachment: fixed;
   }
+  .light body {
+    background-image:
+      radial-gradient(ellipse at top, oklch(0.85 0.06 var(--tab-hue, 250) / 0.18), transparent 60%),
+      radial-gradient(ellipse at bottom right, oklch(0.9 0.04 var(--tab-hue, 250) / 0.18), transparent 55%);
+  }
 }
 
 @layer utilities {
@@ -215,6 +220,10 @@
   }
   .gold-glow-sm {
     box-shadow: 0 0 14px -3px oklch(0.78 0.12 80 / 0.25);
+  }
+  .light .gold-glow,
+  .light .gold-glow-sm {
+    box-shadow: 0 4px 14px -4px oklch(0.55 0.18 var(--tab-hue, 250) / 0.35);
   }
   .wine-glow {
     box-shadow: 0 0 32px -8px oklch(0.5 0.18 18 / 0.4);
@@ -228,42 +237,44 @@
       inset 0 1px 0 0 var(--glass-highlight),
       0 8px 32px -8px oklch(0 0 0 / 0.5);
   }
+  .light .glass {
+    box-shadow:
+      inset 0 1px 0 0 var(--glass-highlight),
+      0 4px 18px -8px oklch(0.4 0.05 250 / 0.18);
+  }
   .glass-strong {
-    background: oklch(0.17 0.02 22 / 0.55);
+    background: var(--surface-elevated);
     backdrop-filter: blur(40px) saturate(1.7);
     -webkit-backdrop-filter: blur(40px) saturate(1.7);
-    border: 1px solid oklch(0.55 0.025 25 / 0.22);
+    border: 1px solid var(--glass-border);
     box-shadow:
-      inset 0 1px 0 0 oklch(0.95 0.005 90 / 0.1),
-      inset 0 -1px 0 0 oklch(0 0 0 / 0.15),
-      0 16px 48px -12px oklch(0 0 0 / 0.6);
+      inset 0 1px 0 0 var(--glass-highlight),
+      inset 0 -1px 0 0 oklch(0 0 0 / 0.08),
+      0 16px 48px -12px oklch(0 0 0 / 0.4);
   }
   .glass-subtle {
-    background: oklch(0.14 0.012 20 / 0.28);
+    background: var(--surface);
     backdrop-filter: blur(18px) saturate(1.3);
     -webkit-backdrop-filter: blur(18px) saturate(1.3);
-    border: 1px solid oklch(0.42 0.018 25 / 0.18);
+    border: 1px solid var(--glass-border);
   }
   .glass-nav {
-    background: oklch(0.09 0.012 22 / 0.7);
+    background: var(--surface-elevated);
     backdrop-filter: blur(44px) saturate(1.9);
     -webkit-backdrop-filter: blur(44px) saturate(1.9);
-    border: 1px solid oklch(0.45 0.025 25 / 0.25);
+    border: 1px solid var(--glass-border);
     box-shadow:
-      inset 0 1px 0 0 oklch(0.95 0.005 90 / 0.07),
-      0 16px 48px -12px oklch(0 0 0 / 0.55),
-      0 0 0 1px oklch(0 0 0 / 0.2);
+      inset 0 1px 0 0 var(--glass-highlight),
+      0 16px 48px -12px oklch(0 0 0 / 0.35);
   }
-  /* OPAQUE surface for dropdowns / selects / option lists.
-     This intentionally overrides any transparency so menus stay readable. */
   .surface-opaque {
     background-color: var(--surface-opaque) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    border: 1px solid oklch(0.32 0.025 25);
+    border: 1px solid var(--border);
     box-shadow:
-      0 24px 64px -16px oklch(0 0 0 / 0.7),
-      inset 0 1px 0 0 oklch(0.95 0.005 90 / 0.05);
+      0 24px 64px -16px oklch(0 0 0 / 0.45),
+      inset 0 1px 0 0 var(--glass-highlight);
   }
   .wine-gradient {
     background: linear-gradient(135deg,
@@ -276,10 +287,30 @@
       oklch(0.82 0.13 80) 0%,
       oklch(0.7 0.11 75) 100%);
   }
+  .light .gold-gradient {
+    background: linear-gradient(135deg,
+      oklch(from var(--primary) calc(l + 0.05) c h) 0%,
+      var(--primary) 100%);
+  }
   .safe-area-pb {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   .safe-area-pt {
     padding-top: env(safe-area-inset-top, 0px);
   }
+  /* Reserve space at bottom of pages so floating nav never hides content/modals. */
+  .pb-nav {
+    padding-bottom: calc(var(--nav-clearance) + env(safe-area-inset-bottom, 0px));
+  }
+  /* Status helpers for licence cards */
+  .status-green { color: var(--success); }
+  .status-amber { color: var(--warning); }
+  .status-red   { color: var(--danger); }
+  .bg-status-green { background-color: color-mix(in oklab, var(--success) 18%, transparent); border-color: color-mix(in oklab, var(--success) 35%, transparent); }
+  .bg-status-amber { background-color: color-mix(in oklab, var(--warning) 18%, transparent); border-color: color-mix(in oklab, var(--warning) 35%, transparent); }
+  .bg-status-red   { background-color: color-mix(in oklab, var(--danger)  18%, transparent); border-color: color-mix(in oklab, var(--danger)  35%, transparent); }
 }
+
+/* Default the root to dark theme. ThemeProvider toggles `.light` on <html>. */
+:root { color-scheme: dark; }
+.light { color-scheme: light; }
