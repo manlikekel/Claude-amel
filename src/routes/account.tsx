@@ -104,9 +104,10 @@ function AccountPage() {
   const refreshOrgs = async () => setMemberships(await fetchMyOrganizations());
 
   useEffect(() => {
-    Promise.all([fetchProfile(), fetchMyOrganizations()]).then(([p, m]) => {
+    Promise.all([fetchProfile(), fetchMyOrganizations(), fetchLicences()]).then(([p, m, l]) => {
       setProfile(p);
       setMemberships(m);
+      setLicences(l);
       setLoading(false);
     });
   }, []);
