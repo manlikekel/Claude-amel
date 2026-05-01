@@ -233,6 +233,116 @@ function AccountPage() {
               </div>
             </Card>
 
+            {/* Licence Target Framework */}
+            <Card className="p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Target className="h-4 w-4 text-primary" />
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Licence Target</h2>
+              </div>
+              <p className="text-[11px] text-muted-foreground mb-3">
+                Pick the regulator you're preparing for. Drives your readiness score.
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {(Object.keys(FRAMEWORKS) as FrameworkId[]).map((id) => {
+                  const active = (profile.target_framework ?? "NCAA") === id;
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => setFramework(id)}
+                      className={`rounded-xl px-2 py-2 text-xs font-semibold uppercase tracking-wider transition-all ${
+                        active ? "gold-gradient text-primary-foreground gold-glow-sm" : "glass-subtle text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {FRAMEWORKS[id].name}
+                    </button>
+                  );
+                })}
+              </div>
+              <Link to="/readiness" className="mt-3 block text-xs text-primary underline-offset-2 hover:underline">
+                View readiness →
+              </Link>
+            </Card>
+
+            {/* Teams */}
+            <Card className="p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="h-4 w-4 text-primary" />
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Teams</h2>
+              </div>
+              <p className="text-[11px] text-muted-foreground mb-3">
+                Optional. Share logs with hangar mates by switching a log's visibility to "Team".
+              </p>
+
+              {memberships.length > 0 && (
+                <div className="flex flex-col gap-2 mb-4">
+                  {memberships.map((m) => {
+                    const isActive = profile.active_organization_id === m.organization_id;
+                    const slug = m.organizations?.slug ?? "";
+                    return (
+                      <div key={m.id} className="rounded-xl glass-subtle p-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold text-foreground truncate">
+                              {m.organizations?.name ?? "Team"}
+                            </p>
+                            <button
+                              onClick={() => copySlug(slug)}
+                              className="mt-0.5 inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary"
+                            >
+                              ID: {slug}
+                              {copiedSlug === slug ? <Check className="h-3 w-3 text-primary" /> : <Copy className="h-3 w-3" />}
+                            </button>
+                          </div>
+                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{m.role}</span>
+                        </div>
+                        <div className="mt-2 flex gap-2">
+                          <Button
+                            variant={isActive ? "secondary" : "outline"}
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => handleSetActive(isActive ? null : m.organization_id)}
+                          >
+                            {isActive ? "Active" : "Set active"}
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleLeave(m.organization_id)}>
+                            Leave
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Create a team</label>
+                <div className="flex gap-2">
+                  <Input
+                    value={newOrgName}
+                    onChange={(e) => setNewOrgName(e.target.value)}
+                    placeholder="e.g. Lagos Hangar 3"
+                    className="placeholder:normal-case"
+                  />
+                  <Button variant="action" size="default" onClick={handleCreateOrg} disabled={orgBusy || !newOrgName.trim()}>
+                    {orgBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                  </Button>
+                </div>
+
+                <label className="mt-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Join with team ID</label>
+                <div className="flex gap-2">
+                  <Input
+                    value={joinSlug}
+                    onChange={(e) => setJoinSlug(e.target.value)}
+                    placeholder="e.g. lagos-hangar-3"
+                    className="placeholder:normal-case"
+                  />
+                  <Button variant="action" size="default" onClick={handleJoinOrg} disabled={orgBusy || !joinSlug.trim()}>
+                    {orgBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+            </Card>
+
             <Card className="p-5">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-primary mb-3">
                 Session
