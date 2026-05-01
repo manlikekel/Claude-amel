@@ -60,16 +60,13 @@
 
 :root {
   --radius: 1rem;
-  /* Premium dark aviation HUD — always dark */
+  /* Premium dark aviation HUD */
   --background: oklch(0.06 0.01 25);
   --foreground: oklch(0.97 0.005 90);
 
-  /* Cards: liquid glass with subtle warmth */
   --card: oklch(0.14 0.02 25 / 0.45);
   --card-foreground: oklch(0.97 0.005 90);
 
-  /* Popovers / dropdowns / selects: SOLID OPAQUE — no transparency.
-     Deep charcoal with a hint of wine for high-contrast readability. */
   --popover: oklch(0.13 0.015 20);
   --popover-foreground: oklch(0.97 0.005 90);
 
@@ -87,6 +84,11 @@
 
   --destructive: oklch(0.6 0.2 25);
   --destructive-foreground: oklch(0.97 0.005 90);
+
+  /* Status semantics — work in both themes */
+  --success: oklch(0.7 0.15 145);
+  --warning: oklch(0.78 0.15 70);
+  --danger: oklch(0.62 0.2 25);
 
   --border: oklch(0.4 0.025 25 / 0.3);
   --input: oklch(0.2 0.015 20 / 0.5);
@@ -107,23 +109,85 @@
   --sidebar-border: oklch(0.4 0.025 25 / 0.3);
   --sidebar-ring: oklch(0.78 0.12 80);
 
-  /* Brand tokens */
   --gold: oklch(0.78 0.12 80);
   --gold-muted: oklch(0.55 0.08 80);
   --gold-foreground: oklch(0.1 0.01 25);
   --wine: oklch(0.32 0.1 18);
   --wine-muted: oklch(0.22 0.06 18);
 
-  /* Surfaces */
   --surface: oklch(0.12 0.015 20 / 0.4);
   --surface-elevated: oklch(0.16 0.02 22 / 0.5);
-  --surface-opaque: oklch(0.11 0.012 22); /* fully opaque dark charcoal */
+  --surface-opaque: oklch(0.11 0.012 22);
 
-  /* Glass tokens */
   --glass: oklch(0.16 0.02 20 / 0.32);
   --glass-border: oklch(0.5 0.025 25 / 0.22);
   --glass-highlight: oklch(0.95 0.005 90 / 0.08);
+
+  /* Per-tab accent (default mirrors gold for dark) */
+  --tab-accent: oklch(0.78 0.12 80);
+
+  /* Bottom-nav clearance so floating prompts/modals never get hidden */
+  --nav-clearance: 6rem;
 }
+
+/* LIGHT THEME — soft neutral with glass cards. Per-tab accents come from
+   the route-level [data-tab] attribute. */
+.light {
+  --background: oklch(0.985 0.003 90);
+  --foreground: oklch(0.18 0.015 25);
+
+  --card: oklch(1 0 0 / 0.7);
+  --card-foreground: oklch(0.18 0.015 25);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.015 25);
+
+  --primary: oklch(0.55 0.18 250); /* default light accent — overridden per-tab */
+  --primary-foreground: oklch(0.99 0 0);
+
+  --secondary: oklch(0.95 0.01 90 / 0.7);
+  --secondary-foreground: oklch(0.25 0.02 250);
+
+  --muted: oklch(0.94 0.005 90 / 0.7);
+  --muted-foreground: oklch(0.45 0.01 90);
+
+  --accent: oklch(0.93 0.02 250 / 0.7);
+  --accent-foreground: oklch(0.3 0.12 250);
+
+  --destructive: oklch(0.58 0.2 25);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --success: oklch(0.55 0.16 145);
+  --warning: oklch(0.7 0.16 70);
+  --danger: oklch(0.58 0.2 25);
+
+  --border: oklch(0.85 0.01 90 / 0.6);
+  --input: oklch(0.96 0.005 90);
+  --ring: oklch(0.55 0.18 250);
+
+  --gold: oklch(0.78 0.12 80);
+  --gold-muted: oklch(0.55 0.08 80);
+  --gold-foreground: oklch(0.1 0.01 25);
+  --wine: oklch(0.32 0.1 18);
+  --wine-muted: oklch(0.85 0.04 18);
+
+  --surface: oklch(1 0 0 / 0.55);
+  --surface-elevated: oklch(1 0 0 / 0.75);
+  --surface-opaque: oklch(1 0 0);
+
+  --glass: oklch(1 0 0 / 0.55);
+  --glass-border: oklch(0.8 0.01 90 / 0.55);
+  --glass-highlight: oklch(1 0 0 / 0.6);
+
+  --tab-accent: oklch(0.55 0.18 250);
+}
+
+/* Per-tab accent (overrides --primary in light mode for visual identity) */
+.light[data-tab="home"]       { --tab-accent: oklch(0.55 0.2 250); --primary: oklch(0.55 0.2 250); --ring: oklch(0.55 0.2 250); }
+.light[data-tab="search"]     { --tab-accent: oklch(0.65 0.18 50);  --primary: oklch(0.65 0.18 50);  --ring: oklch(0.65 0.18 50); }
+.light[data-tab="experience"] { --tab-accent: oklch(0.5 0.2 300);   --primary: oklch(0.5 0.2 300);   --ring: oklch(0.5 0.2 300); }
+.light[data-tab="more"]       { --tab-accent: oklch(0.58 0.2 25);   --primary: oklch(0.58 0.2 25);   --ring: oklch(0.58 0.2 25); }
+.light[data-tab="readiness"]  { --tab-accent: oklch(0.55 0.18 145); --primary: oklch(0.55 0.18 145); --ring: oklch(0.55 0.18 145); }
 
 @layer base {
   * {
