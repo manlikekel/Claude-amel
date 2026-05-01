@@ -3,6 +3,9 @@ import { BottomNav } from "@/components/BottomNav";
 import { AuthGate } from "@/components/AuthGate";
 import { OnboardingTour } from "@/components/OnboardingTour";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/hooks/use-theme";
+import { TabAccentSync } from "@/hooks/use-tab-accent";
+import { LicenceExpiryToast } from "@/components/LicenceExpiryToast";
 
 import appCss from "../styles.css?url";
 
@@ -68,11 +71,21 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   return (
-    <AuthGate>
-      <Outlet />
-      <BottomNav />
-      <OnboardingTour />
-      <Toaster position="top-center" />
-    </AuthGate>
+    <ThemeProvider>
+      <TabAccentSync />
+      <AuthGate>
+        <Outlet />
+        <BottomNav />
+        <OnboardingTour />
+        <LicenceExpiryToast />
+        <Toaster
+          position="top-center"
+          offset={20}
+          richColors
+          closeButton
+          toastOptions={{ duration: 4000 }}
+        />
+      </AuthGate>
+    </ThemeProvider>
   );
 }

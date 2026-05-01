@@ -1,16 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LogOut, Save, Loader2, Mail, Users, Plus, LogIn, Target, Copy, Check } from "lucide-react";
+import {
+  LogOut, Save, Loader2, Mail, Users, Plus, LogIn, Target, Copy, Check,
+  KeyRound, Sun, Moon, ShieldCheck, Trash2, Plane,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
-import { fetchProfile, saveProfile, type ProfileData, type LicenceFramework } from "@/lib/data";
+import { useTheme } from "@/hooks/use-theme";
+import {
+  fetchProfile, saveProfile, type ProfileData, type LicenceFramework,
+  fetchLicences, saveLicence, updateLicence, deleteLicence, type LicenceEntry,
+} from "@/lib/data";
 import {
   fetchMyOrganizations, createOrganization, joinOrganizationBySlug,
   leaveOrganization, setActiveOrganization, type OrganizationMembership,
 } from "@/lib/organizations";
 import { FRAMEWORKS, type FrameworkId } from "@/lib/licence-frameworks";
+import { getLicenceStatus } from "@/lib/licence-status";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -18,8 +26,8 @@ import { motion } from "framer-motion";
 export const Route = createFileRoute("/account")({
   head: () => ({
     meta: [
-      { title: "Account – AMEL" },
-      { name: "description", content: "Manage your AMEL account and profile." },
+      { title: "More – AMEL" },
+      { name: "description", content: "Manage your AMEL profile, licences, theme and team." },
     ],
   }),
   component: AccountPage,
@@ -27,6 +35,7 @@ export const Route = createFileRoute("/account")({
 
 function AccountPage() {
   const { user } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [profile, setProfile] = useState<ProfileData>({
     name: "", email: "", phone: "", ame_licence_no: "", address: "",
     share_to_community_default: true, country_region: "",
@@ -39,12 +48,66 @@ function AccountPage() {
   const [orgBusy, setOrgBusy] = useState(false);
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
 
+  // Change password
+  const [pwdCurrent, setPwdCurrent] = useState("");
+  const [pwdNew, setPwdNew] = useState("");
+  const [pwdConfirm, setPwdConfirm] = useState("");
+  const [pwdBusy, setPwdBusy] = useState(false);
+
+  // Licences
+  const [licences, setLicences] = useState<LicenceEntry[]>([]);
+  const [newLic, setNewLic] = useState({ authority: "", licence_type: "", licence_number: "", ratings: "", issue_date: "", expiry_date: "", remarks: "" });
+  const [licBusy, setLicBusy] = useState(false);
+
+  const refreshLicences = async () => setLicences(await fetchLicences());
+
+  const handleChangePassword = async () => {
+    if (pwdNew.length < 8) { toast.error("New password must be at least 8 characters"); return; }
+    if (pwdNew !== pwdConfirm) { toast.error("Passwords don't match"); return; }
+    if (!user?.email) { toast.error("No account email"); return; }
+    setPwdBusy(true);
+    try {
+      // Re-auth with current password
+      const { error: signInErr } = await supabase.auth.signInWithPassword({ email: user.email, password: pwdCurrent });
+      if (signInErr) { toast.error("Current password is incorrect"); return; }
+      const { error } = await supabase.auth.updateUser({ password: pwdNew });
+      if (error) throw error;
+      toast.success("Password changed successfully");
+      setPwdCurrent(""); setPwdNew(""); setPwdConfirm("");
+    } catch (e: any) { toast.error(e?.message ?? "Couldn't change password"); }
+    finally { setPwdBusy(false); }
+  };
+
+  const handleAddLicence = async () => {
+    if (!newLic.authority || !newLic.licence_type) { toast.error("Add authority and licence type"); return; }
+    setLicBusy(true);
+    try {
+      await saveLicence(newLic);
+      setNewLic({ authority: "", licence_type: "", licence_number: "", ratings: "", issue_date: "", expiry_date: "", remarks: "" });
+      await refreshLicences();
+      toast.success("Licence added");
+    } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+    finally { setLicBusy(false); }
+  };
+
+  const handleDeleteLicence = async (id: string) => {
+    if (!confirm("Delete this licence?")) return;
+    try { await deleteLicence(id); await refreshLicences(); toast.success("Deleted"); }
+    catch (e: any) { toast.error(e?.message ?? "Failed"); }
+  };
+
+  const handleUpdateLicenceExpiry = async (lic: LicenceEntry, newDate: string) => {
+    try { await updateLicence(lic.id, { ...lic, expiry_date: newDate }); await refreshLicences(); toast.success("Updated"); }
+    catch (e: any) { toast.error(e?.message ?? "Failed"); }
+  };
+
   const refreshOrgs = async () => setMemberships(await fetchMyOrganizations());
 
   useEffect(() => {
-    Promise.all([fetchProfile(), fetchMyOrganizations()]).then(([p, m]) => {
+    Promise.all([fetchProfile(), fetchMyOrganizations(), fetchLicences()]).then(([p, m, l]) => {
       setProfile(p);
       setMemberships(m);
+      setLicences(l);
       setLoading(false);
     });
   }, []);
