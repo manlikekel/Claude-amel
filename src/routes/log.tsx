@@ -203,6 +203,20 @@ function LogEntryPage() {
     });
   }, [editId, navigate]);
 
+  // Load orgs + active org so the visibility selector can offer team mode
+  useEffect(() => {
+    (async () => {
+      try {
+        const [mems, prof] = await Promise.all([fetchMyOrganizations(), fetchProfile()]);
+        setMemberships(mems);
+        setActiveOrgId(prof.active_organization_id ?? null);
+        if (!isEdit && prof.active_organization_id && mems.length > 0) {
+          setForm((p) => p.organization_id ? p : { ...p, organization_id: prof.active_organization_id! });
+        }
+      } catch (e) { console.error(e); }
+    })();
+  }, [isEdit]);
+
   // First-time community-share prompt (shown once, only on a new entry)
   useEffect(() => {
     if (isEdit) return;
