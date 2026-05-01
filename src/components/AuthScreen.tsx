@@ -1,28 +1,30 @@
 import { useState } from "react";
-import { Plane, Loader2, Eye, EyeOff } from "lucide-react";
+import { Plane, Loader2, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+
+type Mode = "signin" | "signup" | "forgot";
 
 export function AuthScreen() {
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
 
-  const friendlyError = (err: any): string => {
+  const friendlyError = (err: any, ctx: Mode): string => {
     const msg = String(err?.message ?? "").toLowerCase();
     const code = String(err?.code ?? err?.error_code ?? "").toLowerCase();
     if (code.includes("weak_password") || msg.includes("weak") || msg.includes("pwned")) {
-      return "That password is too common and has appeared in data breaches. Try a longer passphrase with mixed words, numbers and symbols.";
+      return "That password is too common and has appeared in data breaches. Try a longer passphrase.";
     }
-    if (msg.includes("invalid login")) {
-      return "Email or password is incorrect. If you just signed up, please confirm your email first.";
+    if (msg.includes("invalid login") || msg.includes("invalid credentials")) {
+      return "Incorrect email or password";
     }
     if (msg.includes("already registered") || msg.includes("user already")) {
       return "An account with this email already exists. Try signing in instead.";
@@ -31,45 +33,75 @@ export function AuthScreen() {
       return "Please confirm your email address first — check your inbox for the verification link.";
     }
     if (msg.includes("failed to fetch")) {
-      return "Network issue reaching the server. If you're on the preview, try the published app URL.";
+      return "Network issue reaching the server.";
     }
+    if (ctx === "signin") return "Incorrect email or password";
     return err?.message ?? "Authentication failed";
+  };
+
+  const submitSignIn = async () => {
+    if (!email || !password) { toast.error("Enter email and password"); return; }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      toast.success("Login successful");
+      // AuthGate will swap content automatically
+    } catch (err: any) {
+      toast.error(friendlyError(err, "signin"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitSignUp = async () => {
+    if (password.length < 8) { toast.error("Use at least 8 characters for your password"); return; }
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: { name },
+        },
+      });
+      if (error) throw error;
+      if (data.session) {
+        toast.success("Account created — welcome to AMEL!");
+      } else {
+        toast.success("Account created! Check your email to confirm, then sign in.");
+        setMode("signin");
+      }
+    } catch (err: any) {
+      toast.error(friendlyError(err, "signup"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitForgot = async () => {
+    if (!email) { toast.error("Enter your email"); return; }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Password reset link sent. Check your email.");
+      setMode("signin");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't send reset email");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 8) {
-      toast.error("Use at least 8 characters for your password.");
-      return;
-    }
-    setBusy(true);
-    try {
-      if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: { name },
-          },
-        });
-        if (error) throw error;
-        if (data.session) {
-          toast.success("Account created successfully — welcome to AMEL!");
-        } else {
-          toast.success("Account created successfully! Check your email to confirm, then sign in.");
-          setMode("signin");
-        }
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        toast.success("Login successful — welcome back!");
-      }
-    } catch (err: any) {
-      toast.error(friendlyError(err));
-    } finally {
-      setBusy(false);
-    }
+    if (mode === "signin") return submitSignIn();
+    if (mode === "signup") return submitSignUp();
+    return submitForgot();
   };
 
   return (
@@ -91,70 +123,106 @@ export function AuthScreen() {
         </div>
 
         <Card className="p-6">
-          <div className="flex gap-1 mb-5 p-1 rounded-xl glass-subtle">
+          {mode !== "forgot" ? (
+            <div className="flex gap-1 mb-5 p-1 rounded-xl glass-subtle">
+              <button
+                type="button"
+                onClick={() => setMode("signin")}
+                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+                  mode === "signin" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("signup")}
+                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+                  mode === "signup" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+                }`}
+              >
+                Sign Up
+              </button>
+            </div>
+          ) : (
             <button
               type="button"
               onClick={() => setMode("signin")}
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
-                mode === "signin" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-              }`}
+              className="mb-4 inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Sign In
+              <ArrowLeft className="h-3.5 w-3.5" /> Back to sign in
             </button>
-            <button
-              type="button"
-              onClick={() => setMode("signup")}
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
-                mode === "signup" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-              }`}
-            >
-              Sign Up
-            </button>
-          </div>
+          )}
 
-          <form onSubmit={submit} className="flex flex-col gap-3">
-            {mode === "signup" && (
+          <AnimatePresence mode="wait">
+            <motion.form
+              key={mode}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18 }}
+              onSubmit={submit}
+              className="flex flex-col gap-3"
+            >
+              {mode === "signup" && (
+                <Input
+                  placeholder="Full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  autoComplete="name"
+                />
+              )}
               <Input
-                placeholder="Full name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                autoComplete="name"
-              />
-            )}
-            <Input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-            />
-            <div className="relative">
-              <Input
-                type={showPwd ? "text" : "password"}
-                placeholder="Password (min 8 chars, avoid common ones)"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
-                minLength={8}
-                autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                className="pr-10"
+                autoComplete="email"
               />
-              <button
-                type="button"
-                onClick={() => setShowPwd((s) => !s)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-foreground transition-colors"
-                aria-label={showPwd ? "Hide password" : "Show password"}
-                tabIndex={-1}
-              >
-                {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-            <Button type="submit" variant="hero" size="lg" disabled={busy} className="mt-2">
-              {busy && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              {mode === "signin" ? "Sign In" : "Create Account"}
-            </Button>
-          </form>
+
+              {mode !== "forgot" && (
+                <div className="relative">
+                  <Input
+                    type={showPwd ? "text" : "password"}
+                    placeholder={mode === "signup" ? "Password (min 8 chars)" : "Password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPwd((s) => !s)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label={showPwd ? "Hide password" : "Show password"}
+                    tabIndex={-1}
+                  >
+                    {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              )}
+
+              {mode === "signin" && (
+                <button
+                  type="button"
+                  onClick={() => setMode("forgot")}
+                  className="self-end -mt-1 text-xs font-medium text-primary hover:underline underline-offset-2"
+                >
+                  Forgot password?
+                </button>
+              )}
+
+              <Button type="submit" variant="hero" size="lg" disabled={busy} className="mt-2 transition-transform active:scale-[0.98]">
+                {busy && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                {mode === "signin" && "Sign In"}
+                {mode === "signup" && "Create Account"}
+                {mode === "forgot" && "Send reset link"}
+              </Button>
+            </motion.form>
+          </AnimatePresence>
         </Card>
 
         <p className="text-[11px] text-center text-muted-foreground mt-4">
