@@ -33,13 +33,79 @@ function AccountPage() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [memberships, setMemberships] = useState<OrganizationMembership[]>([]);
+  const [newOrgName, setNewOrgName] = useState("");
+  const [joinSlug, setJoinSlug] = useState("");
+  const [orgBusy, setOrgBusy] = useState(false);
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+
+  const refreshOrgs = async () => setMemberships(await fetchMyOrganizations());
 
   useEffect(() => {
-    fetchProfile().then((p) => {
+    Promise.all([fetchProfile(), fetchMyOrganizations()]).then(([p, m]) => {
       setProfile(p);
+      setMemberships(m);
       setLoading(false);
     });
   }, []);
+
+  const setFramework = async (id: FrameworkId) => {
+    const next = { ...profile, target_framework: id as LicenceFramework };
+    setProfile(next);
+    try { await saveProfile(next); toast.success(`Target set to ${FRAMEWORKS[id].name}`); }
+    catch (e: any) { toast.error(e?.message ?? "Couldn't save"); }
+  };
+
+  const handleCreateOrg = async () => {
+    if (!newOrgName.trim()) return;
+    setOrgBusy(true);
+    try {
+      const org = await createOrganization(newOrgName);
+      setNewOrgName("");
+      await refreshOrgs();
+      await setActiveOrganization(org.id);
+      setProfile((p) => ({ ...p, active_organization_id: org.id }));
+      toast.success(`Team "${org.name}" created`);
+    } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+    finally { setOrgBusy(false); }
+  };
+
+  const handleJoinOrg = async () => {
+    if (!joinSlug.trim()) return;
+    setOrgBusy(true);
+    try {
+      await joinOrganizationBySlug(joinSlug);
+      setJoinSlug("");
+      await refreshOrgs();
+      toast.success("Joined team");
+    } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+    finally { setOrgBusy(false); }
+  };
+
+  const handleLeave = async (orgId: string) => {
+    if (!confirm("Leave this team?")) return;
+    try {
+      await leaveOrganization(orgId);
+      if (profile.active_organization_id === orgId) {
+        await setActiveOrganization(null);
+        setProfile({ ...profile, active_organization_id: null });
+      }
+      await refreshOrgs();
+      toast.success("Left team");
+    } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+  };
+
+  const handleSetActive = async (orgId: string | null) => {
+    try {
+      await setActiveOrganization(orgId);
+      setProfile({ ...profile, active_organization_id: orgId });
+      toast.success(orgId ? "Active team updated" : "Cleared active team");
+    } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+  };
+
+  const copySlug = async (slug: string) => {
+    try { await navigator.clipboard.writeText(slug); setCopiedSlug(slug); setTimeout(() => setCopiedSlug(null), 1500); } catch {}
+  };
 
   const handleSave = async () => {
     setSaving(true);
