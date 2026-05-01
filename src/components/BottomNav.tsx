@@ -1,12 +1,12 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Search, Target, BarChart3, User } from "lucide-react";
+import { Home, Search, Target, BarChart3, MoreHorizontal } from "lucide-react";
 
 const navItems = [
   { to: "/" as const, icon: Home, label: "Logbook" },
   { to: "/search" as const, icon: Search, label: "Search" },
   { to: "/readiness" as const, icon: Target, label: "Readiness" },
   { to: "/experience" as const, icon: BarChart3, label: "Stats" },
-  { to: "/account" as const, icon: User, label: "Account" },
+  { to: "/account" as const, icon: MoreHorizontal, label: "More" },
 ];
 
 export function BottomNav() {
