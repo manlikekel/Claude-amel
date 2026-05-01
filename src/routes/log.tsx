@@ -203,6 +203,20 @@ function LogEntryPage() {
     });
   }, [editId, navigate]);
 
+  // Load orgs + active org so the visibility selector can offer team mode
+  useEffect(() => {
+    (async () => {
+      try {
+        const [mems, prof] = await Promise.all([fetchMyOrganizations(), fetchProfile()]);
+        setMemberships(mems);
+        setActiveOrgId(prof.active_organization_id ?? null);
+        if (!isEdit && prof.active_organization_id && mems.length > 0) {
+          setForm((p) => p.organization_id ? p : { ...p, organization_id: prof.active_organization_id! });
+        }
+      } catch (e) { console.error(e); }
+    })();
+  }, [isEdit]);
+
   // First-time community-share prompt (shown once, only on a new entry)
   useEffect(() => {
     if (isEdit) return;
@@ -622,6 +636,58 @@ function LogEntryPage() {
               />
             </button>
           </div>
+
+          {/* Visibility selector */}
+          <FieldGroup label="Visibility">
+            <div className="grid grid-cols-3 gap-1.5">
+              {([
+                { id: "personal", label: "Personal" },
+                { id: "team", label: "Team" },
+                { id: "public_anon", label: "Public" },
+              ] as { id: LogVisibility; label: string }[]).map((opt) => {
+                const disabled = opt.id === "team" && memberships.length === 0;
+                const active = form.visibility === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => update("visibility", opt.id)}
+                    className={`rounded-xl px-2 py-2 text-xs font-semibold uppercase tracking-wider transition-all ${
+                      active
+                        ? "gold-gradient text-primary-foreground gold-glow-sm"
+                        : disabled
+                        ? "glass-subtle text-muted-foreground/40 cursor-not-allowed"
+                        : "glass-subtle text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            {form.visibility === "team" && memberships.length > 1 && (
+              <select
+                value={form.organization_id ?? activeOrgId ?? ""}
+                onChange={(e) => update("organization_id", e.target.value || null)}
+                className="mt-2 w-full rounded-xl border border-glass-border bg-glass px-3 py-2 text-sm text-foreground"
+              >
+                {memberships.map((m) => (
+                  <option key={m.organization_id} value={m.organization_id}>
+                    {m.organizations?.name ?? "Team"}
+                  </option>
+                ))}
+              </select>
+            )}
+            {form.visibility === "team" && memberships.length === 0 && (
+              <p className="mt-1.5 text-[11px] text-muted-foreground">Join or create a team in Account to use this.</p>
+            )}
+            <p className="mt-1.5 text-[10px] text-muted-foreground">
+              {form.visibility === "personal" && "Only you can see this log."}
+              {form.visibility === "team" && "Visible to all members of the selected team."}
+              {form.visibility === "public_anon" && "Anonymized version added to global knowledge base (controlled by share toggle below)."}
+            </p>
+          </FieldGroup>
 
           <Button
             variant="hero"
