@@ -1,11 +1,11 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Search, Target, BarChart3, MoreHorizontal } from "lucide-react";
+import { Home, Search, ListChecks, Target, MoreHorizontal } from "lucide-react";
 
 const navItems = [
-  { to: "/" as const, icon: Home, label: "Logbook" },
+  { to: "/" as const, icon: Home, label: "Home" },
+  { to: "/logs" as const, icon: ListChecks, label: "Logs" },
   { to: "/search" as const, icon: Search, label: "Search" },
   { to: "/readiness" as const, icon: Target, label: "Readiness" },
-  { to: "/experience" as const, icon: BarChart3, label: "Stats" },
   { to: "/account" as const, icon: MoreHorizontal, label: "More" },
 ];
 
@@ -13,7 +13,7 @@ export function BottomNav() {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-3 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-1.5rem)] max-w-md safe-area-pb">
+    <nav className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-1.5rem)] max-w-md safe-area-pb">
       <div className="glass-nav rounded-3xl px-2 py-2">
         <div className="flex items-center justify-around">
           {navItems.map((item) => {
