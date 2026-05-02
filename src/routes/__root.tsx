@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { BottomNav } from "@/components/BottomNav";
 import { AuthGate } from "@/components/AuthGate";
@@ -6,6 +7,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { TabAccentSync } from "@/hooks/use-tab-accent";
 import { LicenceExpiryToast } from "@/components/LicenceExpiryToast";
+import { InstallPrompt } from "@/components/InstallPrompt";
+import { registerServiceWorker } from "@/lib/pwa";
 
 import appCss from "../styles.css?url";
 
@@ -47,8 +50,17 @@ export const Route = createRootRoute({
       { name: "twitter:description", content: "Log, track, and search aircraft maintenance faults intelligently." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2523d822-84db-4de0-b01b-3ec233cf83fd" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2523d822-84db-4de0-b01b-3ec233cf83fd" },
+      { name: "theme-color", content: "#0a0606" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "AMEL" },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.json" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -70,6 +82,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  useEffect(() => { registerServiceWorker(); }, []);
   return (
     <ThemeProvider>
       <TabAccentSync />
@@ -78,6 +91,7 @@ function RootComponent() {
         <BottomNav />
         <OnboardingTour />
         <LicenceExpiryToast />
+        <InstallPrompt />
         <Toaster
           position="top-center"
           offset={20}

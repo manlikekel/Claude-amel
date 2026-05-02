@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReadinessRouteImport } from './routes/readiness'
+import { Route as LogsRouteImport } from './routes/logs'
 import { Route as LogRouteImport } from './routes/log'
 import { Route as ExperienceRouteImport } from './routes/experience'
 import { Route as AccountRouteImport } from './routes/account'
@@ -30,6 +31,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const ReadinessRoute = ReadinessRouteImport.update({
   id: '/readiness',
   path: '/readiness',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogsRoute = LogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LogRoute = LogRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/experience': typeof ExperienceRoute
   '/log': typeof LogRoute
+  '/logs': typeof LogsRoute
   '/readiness': typeof ReadinessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/experience': typeof ExperienceRoute
   '/log': typeof LogRoute
+  '/logs': typeof LogsRoute
   '/readiness': typeof ReadinessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/experience': typeof ExperienceRoute
   '/log': typeof LogRoute
+  '/logs': typeof LogsRoute
   '/readiness': typeof ReadinessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/experience'
     | '/log'
+    | '/logs'
     | '/readiness'
     | '/reset-password'
     | '/search'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/experience'
     | '/log'
+    | '/logs'
     | '/readiness'
     | '/reset-password'
     | '/search'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/experience'
     | '/log'
+    | '/logs'
     | '/readiness'
     | '/reset-password'
     | '/search'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   ExperienceRoute: typeof ExperienceRoute
   LogRoute: typeof LogRoute
+  LogsRoute: typeof LogsRoute
   ReadinessRoute: typeof ReadinessRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/readiness'
       fullPath: '/readiness'
       preLoaderRoute: typeof ReadinessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logs': {
+      id: '/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof LogsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/log': {
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   ExperienceRoute: ExperienceRoute,
   LogRoute: LogRoute,
+  LogsRoute: LogsRoute,
   ReadinessRoute: ReadinessRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
@@ -187,12 +208,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
