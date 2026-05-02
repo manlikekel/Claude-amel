@@ -406,6 +406,155 @@ function AccountPage() {
               </div>
             </Card>
 
+            {/* Appearance / Theme */}
+            <Card className="p-5">
+              <div className="flex items-center gap-2 mb-3">
+                {theme === "dark" ? <Moon className="h-4 w-4 text-primary" /> : <Sun className="h-4 w-4 text-primary" />}
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Appearance</h2>
+              </div>
+              <p className="text-[11px] text-muted-foreground mb-3">
+                Dark is hangar-friendly. Light is for bright environments.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setTheme("dark")}
+                  className={`rounded-xl px-3 py-3 text-xs font-semibold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                    theme === "dark" ? "gold-gradient text-primary-foreground gold-glow-sm" : "glass-subtle text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Moon className="h-4 w-4" /> Dark
+                </button>
+                <button
+                  onClick={() => setTheme("light")}
+                  className={`rounded-xl px-3 py-3 text-xs font-semibold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                    theme === "light" ? "gold-gradient text-primary-foreground gold-glow-sm" : "glass-subtle text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Sun className="h-4 w-4" /> Light
+                </button>
+              </div>
+            </Card>
+
+            {/* Licences */}
+            <Card className="p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Plane className="h-4 w-4 text-primary" />
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Licences</h2>
+              </div>
+              <p className="text-[11px] text-muted-foreground mb-3">
+                Track issuing authority, ratings and expiry. We'll remind you as they approach renewal.
+              </p>
+
+              {licences.length > 0 && (
+                <div className="flex flex-col gap-2 mb-4">
+                  {licences.map((lic) => {
+                    const status = getLicenceStatus(lic.expiry_date);
+                    return (
+                      <div key={lic.id} className="rounded-xl glass-subtle p-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold text-foreground truncate">
+                              {lic.authority} · {lic.licence_type}
+                            </p>
+                            {lic.licence_number && (
+                              <p className="text-[11px] text-muted-foreground truncate">No. {lic.licence_number}</p>
+                            )}
+                            {lic.ratings && (
+                              <p className="text-[11px] text-muted-foreground truncate">Ratings: {lic.ratings}</p>
+                            )}
+                            <p className={`mt-1 text-[11px] font-semibold ${status.colorClass}`}>{status.label}</p>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteLicence(lic.id)}
+                            className="text-muted-foreground hover:text-destructive p-1"
+                            aria-label="Delete licence"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <div className="mt-2">
+                          <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Expiry</label>
+                          <Input
+                            type="date"
+                            value={lic.expiry_date ?? ""}
+                            onChange={(e) => handleUpdateLicenceExpiry(lic, e.target.value)}
+                            className="mt-1"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="flex flex-col gap-2 rounded-xl glass-subtle p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Add a licence</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    value={newLic.authority}
+                    onChange={(e) => setNewLic({ ...newLic, authority: e.target.value })}
+                    placeholder="Authority (e.g. NCAA)"
+                    className="placeholder:normal-case"
+                  />
+                  <Input
+                    value={newLic.licence_type}
+                    onChange={(e) => setNewLic({ ...newLic, licence_type: e.target.value })}
+                    placeholder="Type (e.g. AME)"
+                    className="placeholder:normal-case"
+                  />
+                </div>
+                <Input
+                  value={newLic.licence_number}
+                  onChange={(e) => setNewLic({ ...newLic, licence_number: e.target.value })}
+                  placeholder="Licence No. (optional)"
+                  className="placeholder:normal-case"
+                />
+                <Input
+                  value={newLic.ratings}
+                  onChange={(e) => setNewLic({ ...newLic, ratings: e.target.value })}
+                  placeholder="Ratings (e.g. B737, A320)"
+                  className="placeholder:normal-case"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Issue date</label>
+                    <Input type="date" value={newLic.issue_date} onChange={(e) => setNewLic({ ...newLic, issue_date: e.target.value })} className="mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Expiry date</label>
+                    <Input type="date" value={newLic.expiry_date} onChange={(e) => setNewLic({ ...newLic, expiry_date: e.target.value })} className="mt-1" />
+                  </div>
+                </div>
+                <Button variant="action" size="default" onClick={handleAddLicence} disabled={licBusy}>
+                  {licBusy ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                  Add licence
+                </Button>
+              </div>
+            </Card>
+
+            {/* Change Password */}
+            <Card className="p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <KeyRound className="h-4 w-4 text-primary" />
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Change Password</h2>
+              </div>
+              <div className="flex flex-col gap-3">
+                <Field label="Current password">
+                  <Input type="password" value={pwdCurrent} onChange={(e) => setPwdCurrent(e.target.value)} placeholder="••••••••" autoComplete="current-password" />
+                </Field>
+                <Field label="New password">
+                  <Input type="password" value={pwdNew} onChange={(e) => setPwdNew(e.target.value)} placeholder="At least 8 characters" autoComplete="new-password" />
+                </Field>
+                <Field label="Confirm new password">
+                  <Input type="password" value={pwdConfirm} onChange={(e) => setPwdConfirm(e.target.value)} placeholder="Re-enter new password" autoComplete="new-password" />
+                </Field>
+                <Button variant="hero" size="lg" onClick={handleChangePassword} disabled={pwdBusy || !pwdCurrent || !pwdNew || !pwdConfirm}>
+                  {pwdBusy ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
+                  Update password
+                </Button>
+              </div>
+            </Card>
+
             <Card className="p-5">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-primary mb-3">
                 Session
