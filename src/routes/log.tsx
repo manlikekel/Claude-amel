@@ -238,6 +238,11 @@ function LogEntryPage() {
   const runLookup = useCallback(async (regRaw: string) => {
     const reg = regRaw.trim();
     if (!reg || !looksLikeRegistration(reg)) return;
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      toast.message("Offline mode: online lookup unavailable. You can continue manually.");
+      setLookupState("idle");
+      return;
+    }
     setLookupState("loading");
     try {
       // Check our own profile cache first
@@ -331,6 +336,12 @@ function LogEntryPage() {
       } else {
         await saveLog(payload);
         toast.success("Log saved");
+      }
+      // Subtle success pulse before navigating
+      const root = document.getElementById("amel-app-root");
+      if (root) {
+        root.classList.add("animate-save-pulse");
+        setTimeout(() => root.classList.remove("animate-save-pulse"), 720);
       }
       navigate({ to: "/" });
     } catch (e: any) {

@@ -314,3 +314,41 @@
 /* Default the root to dark theme. ThemeProvider toggles `.light` on <html>. */
 :root { color-scheme: dark; }
 .light { color-scheme: light; }
+
+/* ===== View Transitions API (progressively enhanced) =====
+   Browsers without support simply ignore. */
+@view-transition { navigation: auto; }
+
+::view-transition-old(root) {
+  animation: amel-fade-out 180ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+::view-transition-new(root) {
+  animation: amel-fade-slide-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes amel-fade-out {
+  to { opacity: 0; transform: translateY(-4px); }
+}
+@keyframes amel-fade-slide-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
+}
+
+/* Save success pulse */
+@keyframes amel-save-pulse {
+  0%   { box-shadow: 0 0 0 0 oklch(0.7 0.15 145 / 0.55); }
+  60%  { box-shadow: 0 0 0 14px oklch(0.7 0.15 145 / 0); }
+  100% { box-shadow: 0 0 0 0 oklch(0.7 0.15 145 / 0); }
+}
+.animate-save-pulse { animation: amel-save-pulse 700ms ease-out; }
+
+/* Nav active tab — subtle pulse glow on first appearance */
+@keyframes amel-nav-glow {
+  0%   { transform: scale(0.92); opacity: 0.6; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+.animate-nav-glow { animation: amel-nav-glow 220ms cubic-bezier(0.16, 1, 0.3, 1); }

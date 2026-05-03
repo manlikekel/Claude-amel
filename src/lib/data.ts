@@ -8,6 +8,12 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeRegistration } from "./aircraft";
+import {
+  bulkPutServerLogs, getAllLogs as getLocalLogs, getLog as getLocalLog,
+  putLog as putLocalLog, deleteLogLocal, enqueue,
+  type LocalLog,
+} from "./offline-db";
+import { isOnline, drainQueue } from "./sync";
 
 // ============ TYPES (mirror Supabase rows but flattened for UI) ============
 
@@ -287,39 +293,59 @@ function rowToLog(r: any): LogEntry {
   };
 }
 
+function toLocal(r: LogEntry, sync: "synced" | "pending" | "failed" = "synced"): LocalLog {
+  return { ...r, updated_at: new Date().toISOString(), _sync: sync };
+}
+
 export async function fetchLogs(): Promise<LogEntry[]> {
-  const { data, error } = await supabase
-    .from("maintenance_logs")
-    .select("*")
-    .order("created_at", { ascending: false });
-  if (error) { console.error(error); return []; }
-  return (data ?? []).map(rowToLog);
+  if (isOnline()) {
+    const { data, error } = await supabase
+      .from("maintenance_logs")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (!error && data) {
+      const rows = data.map(rowToLog);
+      try { await bulkPutServerLogs(rows.map((r) => toLocal(r))); } catch { /* idb may be unavailable */ }
+      // Merge in any pending local-only rows
+      try {
+        const local = await getLocalLogs();
+        const ids = new Set(rows.map((r) => r.id));
+        for (const l of local) if (!ids.has(l.id)) rows.push(l);
+        rows.sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
+      } catch { /* ignore */ }
+      return rows;
+    }
+    if (error) console.error(error);
+  }
+  // Offline (or fetch failed) — read from local mirror
+  try { return await getLocalLogs(); } catch { return []; }
 }
 
 export async function fetchRecentLogs(limit = 5): Promise<LogEntry[]> {
-  const { data, error } = await supabase
-    .from("maintenance_logs")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(limit);
-  if (error) { console.error(error); return []; }
-  return (data ?? []).map(rowToLog);
+  const all = await fetchLogs();
+  return all.slice(0, limit);
 }
 
 export async function fetchLog(id: string): Promise<LogEntry | null> {
-  const { data, error } = await supabase
-    .from("maintenance_logs").select("*").eq("id", id).maybeSingle();
-  if (error) { console.error(error); return null; }
-  return data ? rowToLog(data) : null;
+  if (isOnline()) {
+    const { data, error } = await supabase
+      .from("maintenance_logs").select("*").eq("id", id).maybeSingle();
+    if (!error && data) {
+      const row = rowToLog(data);
+      try { await putLocalLog(toLocal(row)); } catch { /* ignore */ }
+      return row;
+    }
+  }
+  try {
+    const local = await getLocalLog(id);
+    return local ?? null;
+  } catch { return null; }
 }
 
 export type LogInput = Omit<LogEntry, "id" | "created_at"> & { created_at?: string | null };
 
-export async function saveLog(input: LogInput): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not signed in");
-  const { error } = await supabase.from("maintenance_logs").insert({
-    user_id: user.id,
+function buildPayload(input: LogInput) {
+  return {
     aircraft_profile_id: input.aircraft_profile_id,
     registration: input.registration,
     aircraft_model: input.aircraft_model,
@@ -340,39 +366,94 @@ export async function saveLog(input: LogInput): Promise<void> {
     visibility: input.visibility ?? "personal",
     organization_id: input.organization_id ?? null,
     ...(input.created_at ? { created_at: input.created_at } : {}),
-  });
-  if (error) throw error;
+  };
+}
+
+function genId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  return "local-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+export async function saveLog(input: LogInput): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } } as any));
+  const payload = buildPayload(input);
+
+  if (isOnline() && user) {
+    const { error } = await supabase.from("maintenance_logs").insert({ user_id: user.id, ...payload });
+    if (!error) { drainQueue(); return; }
+    // fall through to offline queue on error
+    console.error(error);
+  }
+  // Offline path
+  const id = genId();
+  const local: LocalLog = {
+    id,
+    aircraft_profile_id: input.aircraft_profile_id ?? null,
+    registration: input.registration,
+    aircraft_model: input.aircraft_model,
+    manufacturer: input.manufacturer,
+    ata_chapter: input.ata_chapter,
+    fault_description: input.fault_description,
+    symptoms: input.symptoms,
+    root_cause: input.root_cause,
+    action_taken: input.action_taken,
+    tools_used: input.tools_used,
+    time_spent_hours: input.time_spent_hours,
+    is_recurring: input.is_recurring,
+    image_urls: input.image_urls ?? [],
+    voice_note_url: input.voice_note_url ?? null,
+    created_at: input.created_at ?? new Date().toISOString(),
+    system_component: input.system_component ?? "",
+    maintenance_reference: input.maintenance_reference ?? "",
+    share_to_community: input.share_to_community ?? true,
+    visibility: input.visibility ?? "personal",
+    organization_id: input.organization_id ?? null,
+    updated_at: new Date().toISOString(),
+    _sync: "pending",
+  };
+  await putLocalLog(local);
+  await enqueue({ op: "create", logId: id, payload });
 }
 
 export async function updateLog(id: string, input: LogInput): Promise<void> {
-  const { error } = await supabase.from("maintenance_logs").update({
-    aircraft_profile_id: input.aircraft_profile_id,
-    registration: input.registration,
-    aircraft_model: input.aircraft_model,
-    manufacturer: input.manufacturer,
-    ata_chapter: input.ata_chapter,
-    fault_description: input.fault_description,
-    symptoms: input.symptoms,
-    root_cause: input.root_cause,
-    action_taken: input.action_taken,
-    tools_used: input.tools_used,
-    time_spent_hours: input.time_spent_hours,
-    is_recurring: input.is_recurring,
-    image_urls: input.image_urls,
-    voice_note_url: input.voice_note_url,
-    system_component: input.system_component ?? null,
-    maintenance_reference: input.maintenance_reference ?? null,
-    share_to_community: input.share_to_community ?? true,
-    visibility: input.visibility ?? "personal",
-    organization_id: input.organization_id ?? null,
-    ...(input.created_at ? { created_at: input.created_at } : {}),
-  }).eq("id", id);
-  if (error) throw error;
+  const payload = buildPayload(input);
+  if (isOnline()) {
+    const { error } = await supabase.from("maintenance_logs").update(payload).eq("id", id);
+    if (!error) {
+      try {
+        const existing = await getLocalLog(id);
+        if (existing) await putLocalLog({ ...existing, ...payload, _sync: "synced", updated_at: new Date().toISOString() } as LocalLog);
+      } catch { /* ignore */ }
+      drainQueue();
+      return;
+    }
+    console.error(error);
+  }
+  const existing = await getLocalLog(id);
+  const merged: LocalLog = {
+    ...(existing as LocalLog),
+    ...payload,
+    id,
+    created_at: existing?.created_at ?? input.created_at ?? new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    _sync: "pending",
+  } as LocalLog;
+  await putLocalLog(merged);
+  await enqueue({ op: "update", logId: id, payload });
 }
 
 export async function deleteLog(id: string): Promise<void> {
-  const { error } = await supabase.from("maintenance_logs").delete().eq("id", id);
-  if (error) throw error;
+  if (isOnline()) {
+    const { error } = await supabase.from("maintenance_logs").delete().eq("id", id);
+    if (!error) {
+      try { await deleteLogLocal(id); } catch { /* ignore */ }
+      drainQueue();
+      return;
+    }
+    console.error(error);
+  }
+  await deleteLogLocal(id);
+  await enqueue({ op: "delete", logId: id });
 }
 
 export async function searchLogs(query: string): Promise<LogEntry[]> {

@@ -24,7 +24,7 @@ export function AuthScreen() {
       return "That password is too common and has appeared in data breaches. Try a longer passphrase.";
     }
     if (msg.includes("invalid login") || msg.includes("invalid credentials")) {
-      return "Incorrect email or password";
+      return "Invalid username or password";
     }
     if (msg.includes("already registered") || msg.includes("user already")) {
       return "An account with this email already exists. Try signing in instead.";
@@ -35,7 +35,7 @@ export function AuthScreen() {
     if (msg.includes("failed to fetch")) {
       return "Network issue reaching the server.";
     }
-    if (ctx === "signin") return "Incorrect email or password";
+    if (ctx === "signin") return "Invalid username or password";
     return err?.message ?? "Authentication failed";
   };
 

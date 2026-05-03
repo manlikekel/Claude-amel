@@ -199,8 +199,15 @@ function LogsPage() {
           </Card>
         ) : (
           <div className="flex flex-col gap-2">
-            {shown.map((log) => (
-              <LogCard key={log.id} log={log} />
+            {shown.map((log, i) => (
+              <motion.div
+                key={log.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.22, delay: Math.min(i, 8) * 0.025, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <LogCard log={log} />
+              </motion.div>
             ))}
             {visible < filtered.length && (
               <div ref={sentinel} className="flex justify-center py-4">

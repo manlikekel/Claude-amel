@@ -3,12 +3,17 @@
  * CacheFirst for static asset hashes (immutable Vite output).
  * Skips registration logic lives in the page — see src/lib/pwa.ts.
  */
-const VERSION = "amel-v1";
+const VERSION = "amel-v2";
 const STATIC_CACHE = `${VERSION}-static`;
 const HTML_CACHE = `${VERSION}-html`;
+const PRECACHE = ["/", "/offline.html", "/manifest.json"];
 
 self.addEventListener("install", (e) => {
-  self.skipWaiting();
+  e.waitUntil((async () => {
+    const cache = await caches.open(HTML_CACHE);
+    await cache.addAll(PRECACHE).catch(() => {});
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener("activate", (e) => {
@@ -38,7 +43,7 @@ self.addEventListener("fetch", (event) => {
         return fresh;
       } catch {
         const cache = await caches.open(HTML_CACHE);
-        const cached = (await cache.match(req)) || (await cache.match("/"));
+        const cached = (await cache.match(req)) || (await cache.match("/")) || (await cache.match("/offline.html"));
         return cached || new Response("Offline", { status: 503, headers: { "Content-Type": "text/plain" } });
       }
     })());
