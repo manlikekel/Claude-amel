@@ -84,7 +84,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  useEffect(() => { registerServiceWorker(); }, []);
+  useEffect(() => { registerServiceWorker(); installSyncListeners(); }, []);
   return (
     <ThemeProvider>
       <TabAccentSync />
@@ -94,6 +94,7 @@ function RootComponent() {
         <OnboardingTour />
         <LicenceExpiryToast />
         <InstallPrompt />
+        <SyncStatusPill />
         <Toaster
           position="top-center"
           offset={20}
