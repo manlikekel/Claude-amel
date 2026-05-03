@@ -26,5 +26,5 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (!user && !isPublic) return <AuthScreen />;
 
-  return <>{children}</>;
+  return <div id="amel-app-root">{children}</div>;
 }
