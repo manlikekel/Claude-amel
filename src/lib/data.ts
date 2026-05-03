@@ -8,6 +8,12 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeRegistration } from "./aircraft";
+import {
+  bulkPutServerLogs, getAllLogs as getLocalLogs, getLog as getLocalLog,
+  putLog as putLocalLog, deleteLogLocal, enqueue,
+  type LocalLog,
+} from "./offline-db";
+import { isOnline, drainQueue } from "./sync";
 
 // ============ TYPES (mirror Supabase rows but flattened for UI) ============
 
