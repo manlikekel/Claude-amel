@@ -8,7 +8,9 @@ import { ThemeProvider } from "@/hooks/use-theme";
 import { TabAccentSync } from "@/hooks/use-tab-accent";
 import { LicenceExpiryToast } from "@/components/LicenceExpiryToast";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { SyncStatusPill } from "@/components/SyncStatusPill";
 import { registerServiceWorker } from "@/lib/pwa";
+import { installSyncListeners } from "@/lib/sync";
 
 import appCss from "../styles.css?url";
 
