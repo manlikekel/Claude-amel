@@ -332,6 +332,12 @@ function LogEntryPage() {
         await saveLog(payload);
         toast.success("Log saved");
       }
+      // Subtle success pulse before navigating
+      const root = document.getElementById("amel-app-root");
+      if (root) {
+        root.classList.add("animate-save-pulse");
+        setTimeout(() => root.classList.remove("animate-save-pulse"), 720);
+      }
       navigate({ to: "/" });
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to save");
