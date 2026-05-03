@@ -238,6 +238,11 @@ function LogEntryPage() {
   const runLookup = useCallback(async (regRaw: string) => {
     const reg = regRaw.trim();
     if (!reg || !looksLikeRegistration(reg)) return;
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      toast.message("Offline mode: online lookup unavailable. You can continue manually.");
+      setLookupState("idle");
+      return;
+    }
     setLookupState("loading");
     try {
       // Check our own profile cache first
