@@ -1,5 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Home, Search, ListChecks, Target, MoreHorizontal } from "lucide-react";
+import { motion, LayoutGroup } from "framer-motion";
 
 const navItems = [
   { to: "/" as const, icon: Home, label: "Home" },
@@ -15,31 +16,37 @@ export function BottomNav() {
   return (
     <nav className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-1.5rem)] max-w-md safe-area-pb">
       <div className="glass-nav rounded-3xl px-2 py-2">
-        <div className="flex items-center justify-around">
-          {navItems.map((item) => {
-            const isActive =
-              item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to);
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={`relative flex flex-col items-center gap-0.5 rounded-2xl px-3 py-2 text-[10px] transition-all ${
-                  isActive ? "text-primary-foreground" : "text-muted-foreground"
-                }`}
-              >
-                {isActive && (
-                  <span className="absolute inset-0 rounded-2xl gold-gradient gold-glow-sm" />
-                )}
-                <item.icon
-                  className={`h-5 w-5 relative ${
-                    isActive ? "drop-shadow-[0_0_4px_oklch(0_0_0/0.3)]" : ""
+        <LayoutGroup id="bottom-nav">
+          <div className="flex items-center justify-around">
+            {navItems.map((item) => {
+              const isActive =
+                item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to);
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`relative flex flex-col items-center gap-0.5 rounded-2xl px-3 py-2 text-[10px] transition-all active:scale-95 ${
+                    isActive ? "text-primary-foreground" : "text-muted-foreground"
                   }`}
-                />
-                <span className="font-medium relative">{item.label}</span>
-              </Link>
-            );
-          })}
-        </div>
+                >
+                  {isActive && (
+                    <motion.span
+                      layoutId="nav-active-pill"
+                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                      className="absolute inset-0 rounded-2xl gold-gradient gold-glow-sm"
+                    />
+                  )}
+                  <item.icon
+                    className={`h-5 w-5 relative ${
+                      isActive ? "drop-shadow-[0_0_4px_oklch(0_0_0/0.3)]" : ""
+                    }`}
+                  />
+                  <span className="font-medium relative">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </LayoutGroup>
       </div>
     </nav>
   );
