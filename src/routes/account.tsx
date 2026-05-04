@@ -282,17 +282,10 @@ function AccountPage() {
                   type="button"
                   role="switch"
                   aria-checked={profile.share_to_community_default ?? true}
+                  data-on={(profile.share_to_community_default ?? true) ? "true" : "false"}
                   onClick={() => setProfile({ ...profile, share_to_community_default: !(profile.share_to_community_default ?? true) })}
-                  className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                    (profile.share_to_community_default ?? true) ? "bg-primary" : "bg-muted"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                      (profile.share_to_community_default ?? true) ? "translate-x-[22px]" : "translate-x-0.5"
-                    }`}
-                  />
-                </button>
+                  className="amel-switch"
+                />
               </div>
             </Card>
 
