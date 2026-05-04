@@ -210,8 +210,16 @@ function LogEntryPage() {
         const [mems, prof] = await Promise.all([fetchMyOrganizations(), fetchProfile()]);
         setMemberships(mems);
         setActiveOrgId(prof.active_organization_id ?? null);
-        if (!isEdit && prof.active_organization_id && mems.length > 0) {
-          setForm((p) => p.organization_id ? p : { ...p, organization_id: prof.active_organization_id! });
+        if (!isEdit) {
+          // Default visibility = public_anon when user has accepted global sharing.
+          // Also keep share_to_community in sync with their profile default.
+          const sharesGlobally = prof.share_to_community_default ?? true;
+          setForm((p) => ({
+            ...p,
+            visibility: sharesGlobally ? "public_anon" : p.visibility,
+            share_to_community: sharesGlobally,
+            organization_id: p.organization_id ?? prof.active_organization_id ?? null,
+          }));
         }
       } catch (e) { console.error(e); }
     })();
