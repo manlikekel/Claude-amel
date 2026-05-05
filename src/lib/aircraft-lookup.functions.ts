@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { getRequestHeader } from "@tanstack/react-start/server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { normalizeRegistration, type AircraftLookupResult } from "./aircraft";
 
