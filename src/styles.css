@@ -56,6 +56,9 @@
   --color-glass: var(--glass);
   --color-glass-border: var(--glass-border);
   --color-glass-highlight: var(--glass-highlight);
+  --font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Syne", "DM Sans", -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 :root {
