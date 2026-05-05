@@ -152,3 +152,16 @@ function Dashboard() {
     </div>
   );
 }
+
+function AnimatedHours({ value }: { value: number }) {
+  const mv = useMotionValue(0);
+  const display = useTransform(mv, (v) => formatHoursMinutes(v));
+  useEffect(() => {
+    const controls = animate(mv, value, {
+      duration: 1.1,
+      ease: [0.16, 1, 0.3, 1],
+    });
+    return controls.stop;
+  }, [value, mv]);
+  return <motion.span className="metric gold-text text-5xl">{display}</motion.span>;
+}
