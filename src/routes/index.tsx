@@ -113,15 +113,15 @@ function Dashboard() {
         {/* Readiness widget */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }} className="mb-6">
           <Link to="/readiness" className="block">
-            <Card className="p-4 hover:border-primary/40 transition-colors">
+            <Card className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Target className="h-4 w-4 text-primary" />
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <span className="label-overline !text-[10px]">
                     {FRAMEWORKS[framework].name} Readiness
                   </span>
                 </div>
-                <span className="text-2xl font-bold text-primary drop-shadow-[0_0_8px_oklch(0.78_0.12_80/0.4)]">
+                <span className="metric text-2xl gold-text">
                   {readinessPct ?? "—"}%
                 </span>
               </div>
