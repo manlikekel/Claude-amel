@@ -115,11 +115,15 @@ export function AuthScreen() {
         className="w-full max-w-sm relative"
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl glass mb-3 gold-glow-sm">
+          <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl glass mb-4 gold-glow-sm border-primary/20">
             <Plane className="h-7 w-7 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-primary drop-shadow-[0_0_12px_oklch(0.78_0.12_80/0.3)]">AMEL</h1>
-          <p className="text-sm text-muted-foreground mt-1">Your engineering memory</p>
+          <h1 className="font-display text-[40px] font-extrabold tracking-tight leading-none">
+            AM<span className="gold-text">EL</span>
+          </h1>
+          <p className="text-[13px] text-muted-foreground mt-2 tracking-wide">
+            Aircraft Maintenance Engineer Logbook
+          </p>
         </div>
 
         <Card className="p-6">
