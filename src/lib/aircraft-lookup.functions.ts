@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { getRequestHeader } from "@tanstack/react-start/server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { normalizeRegistration, type AircraftLookupResult } from "./aircraft";
 
@@ -18,6 +19,7 @@ import { normalizeRegistration, type AircraftLookupResult } from "./aircraft";
  * so the UI never blocks the engineer's workflow.
  */
 export const lookupAircraft = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: { registration: string }) => {
     if (!input || typeof input.registration !== "string") {
       throw new Error("registration is required");
