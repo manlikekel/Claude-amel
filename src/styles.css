@@ -268,13 +268,13 @@
     border: 1px solid var(--glass-border);
   }
   .glass-nav {
-    background: var(--surface-elevated);
-    backdrop-filter: blur(44px) saturate(1.9);
-    -webkit-backdrop-filter: blur(44px) saturate(1.9);
-    border: 1px solid var(--glass-border);
+    background: oklch(0.06 0.005 280 / 0.85);
+    backdrop-filter: blur(30px) saturate(1.9);
+    -webkit-backdrop-filter: blur(30px) saturate(1.9);
+    border: 1px solid oklch(1 0 0 / 0.08);
     box-shadow:
-      inset 0 1px 0 0 var(--glass-highlight),
-      0 16px 48px -12px oklch(0 0 0 / 0.35);
+      inset 0 1px 0 0 oklch(1 0 0 / 0.06),
+      0 16px 48px -12px oklch(0 0 0 / 0.6);
   }
   .surface-opaque {
     background-color: var(--surface-opaque) !important;
