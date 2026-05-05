@@ -19,6 +19,7 @@ import { normalizeRegistration, type AircraftLookupResult } from "./aircraft";
  * so the UI never blocks the engineer's workflow.
  */
 export const lookupAircraft = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: { registration: string }) => {
     if (!input || typeof input.registration !== "string") {
       throw new Error("registration is required");
