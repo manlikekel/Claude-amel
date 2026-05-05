@@ -425,4 +425,104 @@
   .lift-1 { box-shadow: 0 6px 20px -10px oklch(0 0 0 / 0.55), 0 1px 0 var(--glass-highlight) inset; }
   .lift-2 { box-shadow: 0 14px 40px -16px oklch(0 0 0 / 0.6),  0 1px 0 var(--glass-highlight) inset; }
   .lift-3 { box-shadow: 0 24px 60px -22px oklch(0 0 0 / 0.65), 0 1px 0 var(--glass-highlight) inset; }
+
+  /* ===== Premium typography ===== */
+  .font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
+  .font-mono    { font-family: var(--font-mono); }
+  .metric {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .label-overline {
+    font-family: var(--font-sans);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  /* Mono chip used for ATA codes & registrations */
+  .reg-chip {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: color-mix(in oklab, var(--primary) 14%, transparent);
+    color: var(--primary);
+    border: 1px solid color-mix(in oklab, var(--primary) 28%, transparent);
+    display: inline-flex;
+    align-items: center;
+  }
+  .ata-chip {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: oklch(1 0 0 / 0.05);
+    color: var(--muted-foreground);
+    border: 1px solid oklch(1 0 0 / 0.06);
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Hero metric card: gold shimmer + ✈ watermark */
+  .hero-card {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .hero-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg,
+      transparent 0%,
+      color-mix(in oklab, var(--primary) 8%, transparent) 35%,
+      color-mix(in oklab, var(--primary) 18%, transparent) 50%,
+      color-mix(in oklab, var(--primary) 8%, transparent) 65%,
+      transparent 100%);
+    background-size: 250% 250%;
+    background-position: 0% 0%;
+    opacity: 0.5;
+    z-index: -1;
+    animation: amel-shimmer 8s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes amel-shimmer {
+    0%, 100% { background-position: 0% 0%; }
+    50%      { background-position: 100% 100%; }
+  }
+
+  /* Diagonal gold gradient text */
+  .gold-text {
+    background: linear-gradient(135deg, oklch(0.88 0.13 85), oklch(0.7 0.13 78));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Card hover micro-lift */
+  .hover-lift {
+    transition: transform 220ms cubic-bezier(0.34, 1.2, 0.64, 1), box-shadow 220ms ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 44px -18px oklch(0 0 0 / 0.7), 0 1px 0 var(--glass-highlight) inset;
+  }
+
+  /* Active scale for any interactive surface */
+  .press { transition: transform 120ms ease; }
+  .press:active { transform: scale(0.97); }
+  @media (prefers-reduced-motion: reduce) {
+    .press:active { transform: none; }
+    .hero-card::before { animation: none; }
+  }
 }
