@@ -14,8 +14,8 @@ export function BottomNav() {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-1.5rem)] max-w-md safe-area-pb">
-      <div className="glass-nav rounded-3xl px-2 py-2">
+    <nav className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-1.5rem)] max-w-md safe-area-pb">
+      <div className="glass-nav rounded-[28px] px-2 py-2.5">
         <LayoutGroup id="bottom-nav">
           <div className="flex items-center justify-around">
             {navItems.map((item) => {
@@ -25,23 +25,24 @@ export function BottomNav() {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`relative flex flex-col items-center gap-0.5 rounded-2xl px-3 py-2 text-[10px] transition-all active:scale-95 ${
-                    isActive ? "text-primary-foreground" : "text-muted-foreground"
+                  className={`relative flex flex-col items-center gap-1 rounded-2xl px-3 py-1.5 text-[10px] transition-all press ${
+                    isActive ? "text-primary" : "text-muted-foreground hover:text-foreground/80"
                   }`}
                 >
+                  <item.icon
+                    className={`h-5 w-5 transition-all ${
+                      isActive ? "drop-shadow-[0_0_10px_color-mix(in_oklab,var(--primary)_70%,transparent)]" : ""
+                    }`}
+                    strokeWidth={isActive ? 2.2 : 1.8}
+                  />
+                  <span className="font-medium tracking-wide relative">{item.label}</span>
                   {isActive && (
                     <motion.span
-                      layoutId="nav-active-pill"
-                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                      className="absolute inset-0 rounded-2xl gold-gradient gold-glow-sm"
+                      layoutId="nav-active-dot"
+                      transition={{ type: "spring", stiffness: 480, damping: 34 }}
+                      className="absolute -bottom-1 h-[3px] w-[3px] rounded-full bg-primary shadow-[0_0_8px_var(--primary)]"
                     />
                   )}
-                  <item.icon
-                    className={`h-5 w-5 relative ${
-                      isActive ? "drop-shadow-[0_0_4px_oklch(0_0_0/0.3)]" : ""
-                    }`}
-                  />
-                  <span className="font-medium relative">{item.label}</span>
                 </Link>
               );
             })}

@@ -56,43 +56,45 @@
   --color-glass: var(--glass);
   --color-glass-border: var(--glass-border);
   --color-glass-highlight: var(--glass-highlight);
+  --font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Syne", "DM Sans", -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 :root {
-  --radius: 1rem;
-  /* Premium dark aviation HUD */
-  --background: oklch(0.06 0.01 25);
-  --foreground: oklch(0.97 0.005 90);
+  --radius: 1.25rem;
+  /* Premium dark aviation HUD — pure deep with gold accent */
+  --background: oklch(0.05 0.005 280);
+  --foreground: oklch(0.98 0.003 90);
 
-  --card: oklch(0.14 0.02 25 / 0.45);
-  --card-foreground: oklch(0.97 0.005 90);
+  --card: oklch(0.13 0.008 280 / 0.72);
+  --card-foreground: oklch(0.98 0.003 90);
 
-  --popover: oklch(0.13 0.015 20);
-  --popover-foreground: oklch(0.97 0.005 90);
+  --popover: oklch(0.11 0.006 280);
+  --popover-foreground: oklch(0.98 0.003 90);
 
-  --primary: oklch(0.78 0.12 80);
-  --primary-foreground: oklch(0.1 0.01 25);
+  --primary: oklch(0.78 0.13 82);
+  --primary-foreground: oklch(0.08 0.005 280);
 
-  --secondary: oklch(0.18 0.025 18 / 0.55);
-  --secondary-foreground: oklch(0.88 0.04 80);
+  --secondary: oklch(0.17 0.01 280 / 0.55);
+  --secondary-foreground: oklch(0.9 0.04 82);
 
-  --muted: oklch(0.16 0.015 20 / 0.5);
-  --muted-foreground: oklch(0.62 0.015 30);
+  --muted: oklch(0.16 0.008 280 / 0.5);
+  --muted-foreground: oklch(0.62 0.01 280);
 
-  --accent: oklch(0.22 0.03 18 / 0.55);
-  --accent-foreground: oklch(0.78 0.12 80);
+  --accent: oklch(0.2 0.012 280 / 0.55);
+  --accent-foreground: oklch(0.78 0.13 82);
 
-  --destructive: oklch(0.6 0.2 25);
-  --destructive-foreground: oklch(0.97 0.005 90);
+  --destructive: oklch(0.62 0.21 25);
+  --destructive-foreground: oklch(0.98 0.003 90);
 
-  /* Status semantics — work in both themes */
   --success: oklch(0.7 0.15 145);
   --warning: oklch(0.78 0.15 70);
   --danger: oklch(0.62 0.2 25);
 
-  --border: oklch(0.4 0.025 25 / 0.3);
-  --input: oklch(0.2 0.015 20 / 0.5);
-  --ring: oklch(0.78 0.12 80);
+  --border: oklch(1 0 0 / 0.07);
+  --input: oklch(1 0 0 / 0.04);
+  --ring: oklch(0.78 0.13 82);
 
   --chart-1: oklch(0.78 0.12 80);
   --chart-2: oklch(0.55 0.15 18);
@@ -115,13 +117,13 @@
   --wine: oklch(0.32 0.1 18);
   --wine-muted: oklch(0.22 0.06 18);
 
-  --surface: oklch(0.12 0.015 20 / 0.4);
-  --surface-elevated: oklch(0.16 0.02 22 / 0.5);
-  --surface-opaque: oklch(0.11 0.012 22);
+  --surface: oklch(1 0 0 / 0.025);
+  --surface-elevated: oklch(0.13 0.008 280 / 0.78);
+  --surface-opaque: oklch(0.075 0.006 280);
 
-  --glass: oklch(0.16 0.02 20 / 0.32);
-  --glass-border: oklch(0.5 0.025 25 / 0.22);
-  --glass-highlight: oklch(0.95 0.005 90 / 0.08);
+  --glass: oklch(0.13 0.008 280 / 0.72);
+  --glass-border: oklch(1 0 0 / 0.07);
+  --glass-highlight: oklch(1 0 0 / 0.08);
 
   /* Per-tab accent (default mirrors gold for dark) */
   --tab-accent: oklch(0.78 0.12 80);
@@ -200,13 +202,19 @@
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.005em;
     background-image:
-      radial-gradient(ellipse at top, oklch(0.18 0.06 18 / 0.5), transparent 60%),
-      radial-gradient(ellipse at bottom right, oklch(0.16 0.05 25 / 0.4), transparent 55%),
-      radial-gradient(circle at 50% 120%, color-mix(in oklab, var(--primary) 8%, transparent), transparent 50%);
+      radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in oklab, var(--primary) 14%, transparent), transparent 60%),
+      radial-gradient(ellipse at bottom right, oklch(0.12 0.02 280 / 0.6), transparent 55%),
+      radial-gradient(circle at 0% 100%, oklch(0.1 0.015 25 / 0.5), transparent 50%);
     background-attachment: fixed;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
   }
   .light body {
     background-image:
@@ -260,13 +268,13 @@
     border: 1px solid var(--glass-border);
   }
   .glass-nav {
-    background: var(--surface-elevated);
-    backdrop-filter: blur(44px) saturate(1.9);
-    -webkit-backdrop-filter: blur(44px) saturate(1.9);
-    border: 1px solid var(--glass-border);
+    background: oklch(0.06 0.005 280 / 0.85);
+    backdrop-filter: blur(30px) saturate(1.9);
+    -webkit-backdrop-filter: blur(30px) saturate(1.9);
+    border: 1px solid oklch(1 0 0 / 0.08);
     box-shadow:
-      inset 0 1px 0 0 var(--glass-highlight),
-      0 16px 48px -12px oklch(0 0 0 / 0.35);
+      inset 0 1px 0 0 oklch(1 0 0 / 0.06),
+      0 16px 48px -12px oklch(0 0 0 / 0.6);
   }
   .surface-opaque {
     background-color: var(--surface-opaque) !important;
@@ -417,4 +425,104 @@
   .lift-1 { box-shadow: 0 6px 20px -10px oklch(0 0 0 / 0.55), 0 1px 0 var(--glass-highlight) inset; }
   .lift-2 { box-shadow: 0 14px 40px -16px oklch(0 0 0 / 0.6),  0 1px 0 var(--glass-highlight) inset; }
   .lift-3 { box-shadow: 0 24px 60px -22px oklch(0 0 0 / 0.65), 0 1px 0 var(--glass-highlight) inset; }
+
+  /* ===== Premium typography ===== */
+  .font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
+  .font-mono    { font-family: var(--font-mono); }
+  .metric {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .label-overline {
+    font-family: var(--font-sans);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  /* Mono chip used for ATA codes & registrations */
+  .reg-chip {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: color-mix(in oklab, var(--primary) 14%, transparent);
+    color: var(--primary);
+    border: 1px solid color-mix(in oklab, var(--primary) 28%, transparent);
+    display: inline-flex;
+    align-items: center;
+  }
+  .ata-chip {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: oklch(1 0 0 / 0.05);
+    color: var(--muted-foreground);
+    border: 1px solid oklch(1 0 0 / 0.06);
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Hero metric card: gold shimmer + ✈ watermark */
+  .hero-card {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .hero-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg,
+      transparent 0%,
+      color-mix(in oklab, var(--primary) 8%, transparent) 35%,
+      color-mix(in oklab, var(--primary) 18%, transparent) 50%,
+      color-mix(in oklab, var(--primary) 8%, transparent) 65%,
+      transparent 100%);
+    background-size: 250% 250%;
+    background-position: 0% 0%;
+    opacity: 0.5;
+    z-index: -1;
+    animation: amel-shimmer 8s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes amel-shimmer {
+    0%, 100% { background-position: 0% 0%; }
+    50%      { background-position: 100% 100%; }
+  }
+
+  /* Diagonal gold gradient text */
+  .gold-text {
+    background: linear-gradient(135deg, oklch(0.88 0.13 85), oklch(0.7 0.13 78));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Card hover micro-lift */
+  .hover-lift {
+    transition: transform 220ms cubic-bezier(0.34, 1.2, 0.64, 1), box-shadow 220ms ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 44px -18px oklch(0 0 0 / 0.7), 0 1px 0 var(--glass-highlight) inset;
+  }
+
+  /* Active scale for any interactive surface */
+  .press { transition: transform 120ms ease; }
+  .press:active { transform: scale(0.97); }
+  @media (prefers-reduced-motion: reduce) {
+    .press:active { transform: none; }
+    .hero-card::before { animation: none; }
+  }
 }
