@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { PlusCircle, Search, BarChart3, Target, ListChecks } from "lucide-react";
+import { PlusCircle, Search, BarChart3, Target, ListChecks, Plane } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { fetchProfile, fetchLogs } from "@/lib/data";
+import { fetchProfile, fetchLogs, formatHoursMinutes } from "@/lib/data";
 import { computeReadiness, FRAMEWORKS, type FrameworkId } from "@/lib/licence-frameworks";
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -22,6 +22,8 @@ export const Route = createFileRoute("/")({
 function Dashboard() {
   const [readinessPct, setReadinessPct] = useState<number | null>(null);
   const [framework, setFramework] = useState<FrameworkId>("NCAA");
+  const [totalHours, setTotalHours] = useState<number>(0);
+  const [totalJobs, setTotalJobs] = useState<number>(0);
 
   useEffect(() => {
     Promise.all([fetchProfile(), fetchLogs()]).then(([p, all]) => {
@@ -36,20 +38,47 @@ function Dashboard() {
         if (code) ataChapters.add(code.padStart(2, "0"));
         hours += l.time_spent_hours || 0;
       }
+      setTotalHours(hours);
+      setTotalJobs(all.length);
       const r = computeReadiness({ totalHours: hours, totalJobs: all.length, aircraftTypes, ataChapters }, fid);
       setReadinessPct(r.overall);
     });
   }, []);
 
   return (
-    <div className="min-h-screen bg-background pb-nav relative overflow-hidden">
-      <div className="pointer-events-none absolute -top-32 left-1/2 -translate-x-1/2 h-64 w-96 rounded-full bg-primary/8 blur-[100px]" />
-      <div className="pointer-events-none absolute top-1/3 -right-20 h-48 w-48 rounded-full bg-primary/5 blur-[80px]" />
-
+    <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
       <div className="mx-auto max-w-lg px-5 pt-10 relative">
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-          <h1 className="text-3xl font-bold tracking-tight text-primary drop-shadow-[0_0_12px_oklch(0.78_0.12_80/0.3)]">AMEL</h1>
-          <p className="text-sm text-muted-foreground">Your engineering memory</p>
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="font-display text-3xl font-bold tracking-tight">
+              AM<span className="gold-text">EL</span>
+            </h1>
+            <p className="text-xs text-muted-foreground tracking-wide mt-0.5">Engineering memory</p>
+          </div>
+          <div className="h-10 w-10 rounded-2xl glass flex items-center justify-center gold-glow-sm">
+            <Plane className="h-4 w-4 text-primary" />
+          </div>
+        </motion.div>
+
+        {/* HERO METRIC — Total Hours */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="mb-5"
+        >
+          <Card className="hero-card relative p-6 overflow-hidden">
+            <Plane className="pointer-events-none absolute -right-4 -bottom-4 h-40 w-40 text-primary opacity-[0.05] -rotate-12" strokeWidth={1} />
+            <p className="label-overline mb-2">Total Hours Logged</p>
+            <div className="flex items-baseline gap-3">
+              <AnimatedHours value={totalHours} />
+              <span className="text-sm text-muted-foreground font-medium">hrs</span>
+            </div>
+            <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="font-mono">{totalJobs}</span>
+              <span>tasks recorded</span>
+            </div>
+          </Card>
         </motion.div>
 
         {/* Quick actions */}
