@@ -686,7 +686,7 @@ function LogEntryPage() {
               <select
                 value={form.organization_id ?? activeOrgId ?? ""}
                 onChange={(e) => update("organization_id", e.target.value || null)}
-                className="mt-2 w-full rounded-xl border border-glass-border bg-glass px-3 py-2 text-sm text-foreground"
+                className="mt-2 h-10 w-full appearance-none rounded-xl border border-[var(--glass-border)] bg-[oklch(1_0_0/0.03)] px-3 text-sm text-foreground backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
               >
                 {memberships.map((m) => (
                   <option key={m.organization_id} value={m.organization_id}>
