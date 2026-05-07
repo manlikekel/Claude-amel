@@ -107,13 +107,12 @@ function LogsPage() {
   ].filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-background pb-nav relative overflow-hidden">
-      <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-48 w-80 rounded-full bg-primary/8 blur-[100px]" />
-
+    <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
       <div className="mx-auto max-w-lg px-5 pt-10 relative">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-5">
-          <h1 className="text-2xl font-bold text-primary drop-shadow-[0_0_12px_oklch(0.78_0.12_80/0.3)]">All Maintenance Logs</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="label-overline">Logbook</p>
+          <h1 className="page-title mt-1">All <span className="gold-text">Maintenance</span> Logs</h1>
+          <p className="page-subtitle">
             {logs === null ? "Loading…" : `${filtered.length} log${filtered.length === 1 ? "" : "s"} · ${formatHoursMinutes(totalHours)}`}
           </p>
         </motion.div>
@@ -258,12 +257,13 @@ function LogCard({ log }: { log: LogEntry }) {
   const date = new Date(log.created_at).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "2-digit" });
   return (
     <Link to="/log" search={{ id: log.id }}>
-      <Card className="p-3 hover:border-primary/40 transition-colors active:scale-[0.99]">
-        <div className="mb-1 flex items-center justify-between gap-2">
-          <span className="text-xs font-semibold text-primary truncate">
-            {[log.registration, log.aircraft_model].filter(Boolean).join(" · ") || "Aircraft"} · ATA {ata}
-          </span>
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">
+      <Card className="p-3.5 press">
+        <div className="mb-1.5 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            {log.registration && <span className="reg-chip shrink-0">{log.registration}</span>}
+            {log.aircraft_model && <span className="text-[11px] text-muted-foreground truncate font-medium">{log.aircraft_model}</span>}
+          </div>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0 font-mono">
             {date}
           </span>
         </div>
@@ -271,11 +271,14 @@ function LogCard({ log }: { log: LogEntry }) {
         {log.action_taken && (
           <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">✓ {log.action_taken}</p>
         )}
-        {log.time_spent_hours > 0 && (
-          <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-            {formatHoursMinutes(log.time_spent_hours)}
-          </p>
-        )}
+        <div className="mt-2 flex items-center gap-2">
+          <span className="ata-chip">ATA {ata}</span>
+          {log.time_spent_hours > 0 && (
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono">
+              {formatHoursMinutes(log.time_spent_hours)}
+            </span>
+          )}
+        </div>
       </Card>
     </Link>
   );

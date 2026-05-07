@@ -196,15 +196,14 @@ function AccountPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-32 relative overflow-hidden">
-      <div className="pointer-events-none absolute -top-20 right-0 h-48 w-48 rounded-full bg-primary/6 blur-[80px]" />
-
+    <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
       <div className="mx-auto max-w-lg px-5 pt-10 relative">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-          <h1 className="text-2xl font-bold text-primary drop-shadow-[0_0_12px_oklch(0.78_0.12_80/0.3)]">Account</h1>
-          <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
-            <Mail className="h-3.5 w-3.5" />
-            {user?.email}
+          <p className="label-overline">Settings</p>
+          <h1 className="page-title mt-1">Acc<span className="gold-text">ount</span></h1>
+          <p className="page-subtitle flex items-center gap-1.5">
+            <Mail className="h-3 w-3" />
+            <span className="font-mono text-[11px]">{user?.email}</span>
           </p>
         </motion.div>
 
@@ -298,16 +297,15 @@ function AccountPage() {
               <p className="text-[11px] text-muted-foreground mb-3">
                 Pick the regulator you're preparing for. Drives your readiness score.
               </p>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="flex gap-1.5">
                 {(Object.keys(FRAMEWORKS) as FrameworkId[]).map((id) => {
                   const active = (profile.target_framework ?? "NCAA") === id;
                   return (
                     <button
                       key={id}
                       onClick={() => setFramework(id)}
-                      className={`rounded-xl px-2 py-2 text-xs font-semibold uppercase tracking-wider transition-all ${
-                        active ? "gold-gradient text-primary-foreground gold-glow-sm" : "glass-subtle text-muted-foreground hover:text-foreground"
-                      }`}
+                      data-active={active}
+                      className="seg-pill flex-1 press"
                     >
                       {FRAMEWORKS[id].name}
                     </button>

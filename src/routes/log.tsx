@@ -381,17 +381,20 @@ function LogEntryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-32 relative overflow-hidden">
-      <div className="pointer-events-none absolute -top-20 right-0 h-48 w-48 rounded-full bg-primary/6 blur-[80px]" />
-
+    <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
       <div className="mx-auto max-w-lg px-5 pt-6 relative">
         <div className="mb-6 flex items-center gap-3">
           <Link to="/">
             <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
           </Link>
-          <h1 className="text-xl font-bold text-foreground">{isEdit ? "Edit Log Entry" : "New Log Entry"}</h1>
+          <div className="flex-1">
+            <p className="label-overline">{isEdit ? "Editing" : "New"}</p>
+            <h1 className="font-display text-xl font-bold tracking-tight">
+              {isEdit ? "Edit Log " : "Log "}<span className="gold-text">Entry</span>
+            </h1>
+          </div>
           {isEdit && (
-            <Button variant="ghost" size="icon" className="ml-auto text-destructive" onClick={handleDelete}>
+            <Button variant="ghost" size="icon" className="text-destructive" onClick={handleDelete}>
               <Trash2 className="h-4 w-4" />
             </Button>
           )}
@@ -499,7 +502,7 @@ function LogEntryPage() {
                 placeholder="What exactly happened? (EICAS, symptoms, conditions) — or tap the mic to dictate"
                 onChange={(e) => update("fault_description", e.target.value)}
                 rows={4}
-                className="flex w-full rounded-xl border border-glass-border bg-glass px-3 py-2 pr-12 text-sm text-foreground uppercase backdrop-blur-sm placeholder:normal-case placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="amel-textarea pr-12 uppercase"
               />
               <button
                 type="button"
@@ -552,7 +555,7 @@ function LogEntryPage() {
               placeholder="What did you do to fix it?"
               onChange={(e) => update("action_taken", e.target.value)}
               rows={2}
-              className="flex w-full rounded-xl border border-glass-border bg-glass px-3 py-2 text-sm text-foreground uppercase backdrop-blur-sm placeholder:normal-case placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="amel-textarea uppercase"
             />
           </FieldGroup>
 
@@ -652,7 +655,7 @@ function LogEntryPage() {
 
           {/* Visibility selector */}
           <FieldGroup label="Visibility">
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="flex gap-1.5">
               {([
                 { id: "personal", label: "Personal" },
                 { id: "team", label: "Team" },
@@ -666,13 +669,8 @@ function LogEntryPage() {
                     type="button"
                     disabled={disabled}
                     onClick={() => update("visibility", opt.id)}
-                    className={`rounded-xl px-2 py-2 text-xs font-semibold uppercase tracking-wider transition-all ${
-                      active
-                        ? "gold-gradient text-primary-foreground gold-glow-sm"
-                        : disabled
-                        ? "glass-subtle text-muted-foreground/40 cursor-not-allowed"
-                        : "glass-subtle text-muted-foreground hover:text-foreground"
-                    }`}
+                    data-active={active}
+                    className={`seg-pill flex-1 press ${disabled ? "!opacity-40 !cursor-not-allowed" : ""}`}
                   >
                     {opt.label}
                   </button>
@@ -683,7 +681,7 @@ function LogEntryPage() {
               <select
                 value={form.organization_id ?? activeOrgId ?? ""}
                 onChange={(e) => update("organization_id", e.target.value || null)}
-                className="mt-2 w-full rounded-xl border border-glass-border bg-glass px-3 py-2 text-sm text-foreground"
+                className="mt-2 h-10 w-full appearance-none rounded-xl border border-[var(--glass-border)] bg-[oklch(1_0_0/0.03)] px-3 text-sm text-foreground backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
               >
                 {memberships.map((m) => (
                   <option key={m.organization_id} value={m.organization_id}>

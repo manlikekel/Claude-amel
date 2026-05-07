@@ -119,13 +119,12 @@ function ExperiencePage() {
   const maxAta = ataEntries.length > 0 ? Math.max(...ataEntries.map(([, v]) => v)) : 1;
 
   return (
-    <div className="min-h-screen bg-background pb-32 relative overflow-hidden">
-      <div className="pointer-events-none absolute -top-20 left-1/3 h-48 w-48 rounded-full bg-primary/6 blur-[80px]" />
-
+    <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
       <div className="mx-auto max-w-lg px-5 pt-10 relative">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-primary drop-shadow-[0_0_12px_oklch(0.78_0.12_80/0.3)]">My Experience</h1>
-          <p className="text-sm text-muted-foreground mt-1">Hours, ratings & logbook export</p>
+          <p className="label-overline">Engineer Record</p>
+          <h1 className="page-title mt-1">My <span className="gold-text">Experience</span></h1>
+          <p className="page-subtitle">Hours, ratings & logbook export</p>
         </div>
 
         {loading ? (
@@ -369,8 +368,8 @@ function StatBox({ icon: Icon, value, label }: { icon: React.ElementType; value:
   return (
     <Card className="flex flex-col items-center p-4">
       <Icon className="mb-1.5 h-5 w-5 text-primary" />
-      <span className="text-2xl font-bold text-foreground">{value}</span>
-      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="metric gold-text text-2xl">{value}</span>
+      <span className="label-overline mt-1 !text-[9px]">{label}</span>
     </Card>
   );
 }
