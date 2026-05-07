@@ -368,8 +368,8 @@ function StatBox({ icon: Icon, value, label }: { icon: React.ElementType; value:
   return (
     <Card className="flex flex-col items-center p-4">
       <Icon className="mb-1.5 h-5 w-5 text-primary" />
-      <span className="text-2xl font-bold text-foreground">{value}</span>
-      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="metric gold-text text-2xl">{value}</span>
+      <span className="label-overline mt-1 !text-[9px]">{label}</span>
     </Card>
   );
 }
