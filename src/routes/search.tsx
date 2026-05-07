@@ -98,31 +98,30 @@ function SearchPage() {
   }, [scopedMyLogs, scopedCommunity, query]);
 
   return (
-    <div className="min-h-screen bg-background pb-32 relative overflow-hidden">
-      <div className="pointer-events-none absolute top-20 left-0 h-40 w-40 rounded-full bg-primary/5 blur-[80px]" />
-
+    <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
       <div className="mx-auto max-w-lg px-5 pt-10 relative">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-primary drop-shadow-[0_0_12px_oklch(0.78_0.12_80/0.3)]">Fault Search</h1>
-          <p className="text-sm text-muted-foreground mt-1">Your past fixes + global engineer knowledge</p>
+          <p className="label-overline">Knowledge</p>
+          <h1 className="page-title mt-1">Fault <span className="gold-text">Search</span></h1>
+          <p className="page-subtitle">Your past fixes + global engineer knowledge</p>
         </div>
 
         <div className="relative mb-3">
-          <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <SearchIcon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Describe the fault… (e.g. pack high temp, low oil pressure)"
-            className="h-12 pl-10 text-base"
+            className="h-12 pl-10 text-base placeholder:normal-case"
           />
           {searching && <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-primary" />}
         </div>
 
-        <div className="mb-2 grid grid-cols-2 gap-2">
+        <div className="mb-3 grid grid-cols-2 gap-2">
           <select
             value={aircraftFilter}
             onChange={(e) => setAircraftFilter(e.target.value)}
-            className="h-10 rounded-xl border border-glass-border bg-background px-3 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="h-10 appearance-none rounded-xl border border-[var(--glass-border)] bg-[oklch(1_0_0/0.03)] px-3 text-xs text-foreground backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
           >
             <option value="">All aircraft models</option>
             {aircraftOptions.map((a) => <option key={a} value={a}>{a}</option>)}
@@ -130,7 +129,7 @@ function SearchPage() {
           <select
             value={ataFilter}
             onChange={(e) => setAtaFilter(e.target.value)}
-            className="h-10 rounded-xl border border-glass-border bg-background px-3 text-xs text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="h-10 appearance-none rounded-xl border border-[var(--glass-border)] bg-[oklch(1_0_0/0.03)] px-3 text-xs text-foreground backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
           >
             <option value="">All ATA chapters</option>
             {ATA_CHAPTERS.map((a) => <option key={a} value={a}>{a}</option>)}
@@ -143,11 +142,10 @@ function SearchPage() {
               key={s}
               type="button"
               onClick={() => setScope(s)}
-              className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-medium transition-all ${
-                scope === s ? "glass border-primary/40 text-primary gold-glow-sm" : "glass-subtle text-muted-foreground"
-              }`}
+              data-active={scope === s}
+              className="seg-pill flex-1 press"
             >
-              {s === "all" ? "All Results" : s === "mine" ? "My Logs" : "Global DB"}
+              {s === "all" ? "All" : s === "mine" ? "My Logs" : "Global DB"}
             </button>
           ))}
         </div>
