@@ -655,7 +655,7 @@ function LogEntryPage() {
 
           {/* Visibility selector */}
           <FieldGroup label="Visibility">
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="flex gap-1.5">
               {([
                 { id: "personal", label: "Personal" },
                 { id: "team", label: "Team" },
@@ -669,13 +669,8 @@ function LogEntryPage() {
                     type="button"
                     disabled={disabled}
                     onClick={() => update("visibility", opt.id)}
-                    className={`rounded-xl px-2 py-2 text-xs font-semibold uppercase tracking-wider transition-all ${
-                      active
-                        ? "gold-gradient text-primary-foreground gold-glow-sm"
-                        : disabled
-                        ? "glass-subtle text-muted-foreground/40 cursor-not-allowed"
-                        : "glass-subtle text-muted-foreground hover:text-foreground"
-                    }`}
+                    data-active={active}
+                    className={`seg-pill flex-1 press ${disabled ? "!opacity-40 !cursor-not-allowed" : ""}`}
                   >
                     {opt.label}
                   </button>
