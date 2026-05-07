@@ -257,12 +257,13 @@ function LogCard({ log }: { log: LogEntry }) {
   const date = new Date(log.created_at).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "2-digit" });
   return (
     <Link to="/log" search={{ id: log.id }}>
-      <Card className="p-3 hover:border-primary/40 transition-colors active:scale-[0.99]">
-        <div className="mb-1 flex items-center justify-between gap-2">
-          <span className="text-xs font-semibold text-primary truncate">
-            {[log.registration, log.aircraft_model].filter(Boolean).join(" · ") || "Aircraft"} · ATA {ata}
-          </span>
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">
+      <Card className="p-3.5 press">
+        <div className="mb-1.5 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            {log.registration && <span className="reg-chip shrink-0">{log.registration}</span>}
+            {log.aircraft_model && <span className="text-[11px] text-muted-foreground truncate font-medium">{log.aircraft_model}</span>}
+          </div>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0 font-mono">
             {date}
           </span>
         </div>
@@ -270,11 +271,14 @@ function LogCard({ log }: { log: LogEntry }) {
         {log.action_taken && (
           <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">✓ {log.action_taken}</p>
         )}
-        {log.time_spent_hours > 0 && (
-          <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-            {formatHoursMinutes(log.time_spent_hours)}
-          </p>
-        )}
+        <div className="mt-2 flex items-center gap-2">
+          <span className="ata-chip">ATA {ata}</span>
+          {log.time_spent_hours > 0 && (
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono">
+              {formatHoursMinutes(log.time_spent_hours)}
+            </span>
+          )}
+        </div>
       </Card>
     </Link>
   );
