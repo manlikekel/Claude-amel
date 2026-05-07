@@ -92,29 +92,25 @@ function ReadinessPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-32 relative overflow-hidden">
-      <div className="pointer-events-none absolute -top-20 right-0 h-48 w-48 rounded-full bg-primary/6 blur-[80px]" />
-
+    <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
       <div className="mx-auto max-w-lg px-5 pt-6 relative">
         <div className="mb-6 flex items-center gap-3">
           <Link to="/"><Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button></Link>
           <div>
-            <h1 className="text-xl font-bold text-foreground">Licence Readiness</h1>
-            <p className="text-xs text-muted-foreground">{result.framework.fullName}</p>
+            <p className="label-overline">Compliance</p>
+            <h1 className="page-title mt-0.5 text-2xl">Licence <span className="gold-text">Readiness</span></h1>
+            <p className="page-subtitle">{result.framework.fullName}</p>
           </div>
         </div>
 
         {/* Framework switcher */}
-        <div className="mb-5 grid grid-cols-3 gap-2">
+        <div className="mb-5 flex gap-1.5">
           {(Object.keys(FRAMEWORKS) as FrameworkId[]).map((id) => (
             <button
               key={id}
               onClick={() => switchFramework(id)}
-              className={`rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all ${
-                framework === id
-                  ? "gold-gradient text-primary-foreground gold-glow-sm"
-                  : "glass-subtle text-muted-foreground hover:text-foreground"
-              }`}
+              data-active={framework === id}
+              className="seg-pill flex-1 press"
             >
               {FRAMEWORKS[id].name}
             </button>
@@ -123,19 +119,19 @@ function ReadinessPage() {
 
         {/* Overall score */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className="p-5 mb-5">
+          <Card className="hero-card p-5 mb-5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Target className="h-4 w-4 text-primary" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Overall Readiness</span>
+                <span className="label-overline !text-[10px]">Overall Readiness</span>
               </div>
-              <span className="text-3xl font-bold text-primary drop-shadow-[0_0_8px_oklch(0.78_0.12_80/0.4)]">
+              <span className="metric gold-text text-4xl">
                 {result.overall}%
               </span>
             </div>
             <Progress value={result.overall} className="h-2.5" />
-            <p className="mt-3 text-sm text-foreground">
-              You have covered {result.overall}% of your required experience profile for {result.framework.name}.
+            <p className="mt-3 text-sm text-foreground/90">
+              You have covered <span className="font-mono text-primary">{result.overall}%</span> of your required experience profile for {result.framework.name}.
             </p>
           </Card>
         </motion.div>
