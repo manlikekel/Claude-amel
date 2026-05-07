@@ -297,16 +297,15 @@ function AccountPage() {
               <p className="text-[11px] text-muted-foreground mb-3">
                 Pick the regulator you're preparing for. Drives your readiness score.
               </p>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="flex gap-1.5">
                 {(Object.keys(FRAMEWORKS) as FrameworkId[]).map((id) => {
                   const active = (profile.target_framework ?? "NCAA") === id;
                   return (
                     <button
                       key={id}
                       onClick={() => setFramework(id)}
-                      className={`rounded-xl px-2 py-2 text-xs font-semibold uppercase tracking-wider transition-all ${
-                        active ? "gold-gradient text-primary-foreground gold-glow-sm" : "glass-subtle text-muted-foreground hover:text-foreground"
-                      }`}
+                      data-active={active}
+                      className="seg-pill flex-1 press"
                     >
                       {FRAMEWORKS[id].name}
                     </button>
