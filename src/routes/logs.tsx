@@ -107,13 +107,12 @@ function LogsPage() {
   ].filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-background pb-nav relative overflow-hidden">
-      <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-48 w-80 rounded-full bg-primary/8 blur-[100px]" />
-
+    <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
       <div className="mx-auto max-w-lg px-5 pt-10 relative">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-5">
-          <h1 className="text-2xl font-bold text-primary drop-shadow-[0_0_12px_oklch(0.78_0.12_80/0.3)]">All Maintenance Logs</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="label-overline">Logbook</p>
+          <h1 className="page-title mt-1">All <span className="gold-text">Maintenance</span> Logs</h1>
+          <p className="page-subtitle">
             {logs === null ? "Loading…" : `${filtered.length} log${filtered.length === 1 ? "" : "s"} · ${formatHoursMinutes(totalHours)}`}
           </p>
         </motion.div>
