@@ -555,7 +555,7 @@ function LogEntryPage() {
               placeholder="What did you do to fix it?"
               onChange={(e) => update("action_taken", e.target.value)}
               rows={2}
-              className="flex w-full rounded-xl border border-glass-border bg-glass px-3 py-2 text-sm text-foreground uppercase backdrop-blur-sm placeholder:normal-case placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="amel-textarea uppercase"
             />
           </FieldGroup>
 
