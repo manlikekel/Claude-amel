@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   LogOut, Save, Loader2, Mail, Users, Plus, LogIn, Target, Copy, Check,
-  KeyRound, Sun, Moon, ShieldCheck, Trash2, Plane,
+  KeyRound, Sun, Moon, ShieldCheck, Trash2, Plane, Cog, ShieldAlert,
+  Wrench, GraduationCap, Briefcase, Globe, BadgeCheck, Download, AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -22,6 +23,9 @@ import { getLicenceStatus } from "@/lib/licence-status";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { LOCALES, getLocale, setLocale, type Locale } from "@/lib/i18n";
+import { downloadUserDataJson, deleteAllUserData } from "@/lib/data-export";
+import { recordAudit } from "@/lib/audit";
 
 export const Route = createFileRoute("/account")({
   head: () => ({
@@ -547,6 +551,26 @@ function AccountPage() {
             </Card>
 
             <Card className="p-5">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-primary mb-3 flex items-center gap-1.5">
+                <Cog className="h-3.5 w-3.5" /> Maintenance Toolkit
+              </h2>
+              <div className="grid grid-cols-2 gap-2">
+                <Link to="/components"><Button variant="action" size="lg" className="w-full justify-start gap-2"><Cog className="h-4 w-4 text-primary" />Components</Button></Link>
+                <Link to="/ad-sb"><Button variant="action" size="lg" className="w-full justify-start gap-2"><ShieldAlert className="h-4 w-4 text-primary" />AD / SB</Button></Link>
+                <Link to="/tools"><Button variant="action" size="lg" className="w-full justify-start gap-2"><Wrench className="h-4 w-4 text-primary" />Tool Cal.</Button></Link>
+                <Link to="/cpd"><Button variant="action" size="lg" className="w-full justify-start gap-2"><GraduationCap className="h-4 w-4 text-primary" />CPD</Button></Link>
+                <Link to="/type-ratings"><Button variant="action" size="lg" className="w-full justify-start gap-2"><Plane className="h-4 w-4 text-primary" />Type ratings</Button></Link>
+                <Link to="/jobs"><Button variant="action" size="lg" className="w-full justify-start gap-2"><Briefcase className="h-4 w-4 text-primary" />Jobs</Button></Link>
+              </div>
+            </Card>
+
+            <VerificationCard />
+
+            <LocaleCard />
+
+            <PrivacyCard />
+
+            <Card className="p-5">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-primary mb-3">
                 Session
               </h2>
@@ -570,5 +594,172 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       </label>
       {children}
     </div>
+  );
+}
+
+function VerificationCard() {
+  const [status, setStatus] = useState<string>("unverified");
+  const [authority, setAuthority] = useState("");
+  const [evidenceUrl, setEvidenceUrl] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from("profiles").select("ame_verification_status, ame_verification_authority, ame_verification_evidence_url").maybeSingle();
+      if (data) {
+        setStatus((data as any).ame_verification_status ?? "unverified");
+        setAuthority((data as any).ame_verification_authority ?? "");
+        setEvidenceUrl((data as any).ame_verification_evidence_url ?? "");
+      }
+    })();
+  }, []);
+
+  const submit = async () => {
+    if (!authority || !evidenceUrl) { toast.error("Authority and evidence URL required"); return; }
+    setSubmitting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not signed in");
+      await supabase.from("profiles").update({
+        ame_verification_status: "pending",
+        ame_verification_authority: authority,
+        ame_verification_evidence_url: evidenceUrl,
+      }).eq("user_id", user.id);
+      await recordAudit("profile.verification_requested", { resource_type: "profile", resource_id: user.id });
+      setStatus("pending");
+      toast.success("Verification submitted — review usually takes 2–3 business days");
+    } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+    finally { setSubmitting(false); }
+  };
+
+  return (
+    <Card className="p-5">
+      <h2 className="text-xs font-semibold uppercase tracking-wider text-primary mb-3 flex items-center gap-1.5">
+        <BadgeCheck className="h-3.5 w-3.5" /> AME Verification
+      </h2>
+
+      {status === "verified" ? (
+        <div className="flex items-center gap-2">
+          <span className="badge-success"><BadgeCheck className="h-3 w-3" />Verified AME</span>
+          <p className="text-xs text-muted-foreground">{authority}</p>
+        </div>
+      ) : status === "pending" ? (
+        <p className="text-sm text-muted-foreground">
+          Verification pending. We'll email you when review is complete.
+        </p>
+      ) : status === "rejected" ? (
+        <p className="text-sm text-destructive">Last submission was rejected. You can re-submit with corrected evidence.</p>
+      ) : (
+        <div className="space-y-2.5">
+          <p className="text-sm text-muted-foreground">
+            Verified AMEs get a badge on community contributions and can co-sign log entries.
+          </p>
+          <Field label="Issuing authority">
+            <select
+              value={authority}
+              onChange={(e) => setAuthority(e.target.value)}
+              className="h-10 w-full rounded-xl border border-[var(--glass-border)] bg-[oklch(1_0_0/0.03)] px-3 text-sm text-foreground"
+            >
+              <option value="">Select…</option>
+              {Object.values(FRAMEWORKS).map((f) => <option key={f.id} value={f.id}>{f.fullName}</option>)}
+            </select>
+          </Field>
+          <Field label="Licence document URL or scan">
+            <Input placeholder="https://… or upload scan to your cloud and paste link" value={evidenceUrl} onChange={(e) => setEvidenceUrl(e.target.value)} />
+          </Field>
+          <Button variant="hero" onClick={submit} disabled={submitting} className="w-full">
+            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit for verification"}
+          </Button>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function LocaleCard() {
+  const [current, setCurrent] = useState<Locale>(getLocale());
+
+  const change = async (loc: Locale) => {
+    setLocale(loc);
+    setCurrent(loc);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) await supabase.from("profiles").update({ locale: loc }).eq("user_id", user.id);
+    } catch { /* non-fatal */ }
+    toast.success("Language updated");
+  };
+
+  return (
+    <Card className="p-5">
+      <h2 className="text-xs font-semibold uppercase tracking-wider text-primary mb-3 flex items-center gap-1.5">
+        <Globe className="h-3.5 w-3.5" /> Language
+      </h2>
+      <div className="grid grid-cols-2 gap-2">
+        {LOCALES.map((l) => (
+          <button
+            key={l.id}
+            onClick={() => change(l.id)}
+            data-active={current === l.id}
+            className="seg-pill press text-left"
+          >
+            <span className="flex flex-col items-start gap-0">
+              <span className="text-[11px]">{l.native}</span>
+              <span className="text-[9px] opacity-70 normal-case">{l.name}</span>
+            </span>
+          </button>
+        ))}
+      </div>
+      <p className="mt-3 text-[10px] text-muted-foreground">
+        Aviation terminology requires native-speaking AME translators for full accuracy. Help improve translations via support@amel.app.
+      </p>
+    </Card>
+  );
+}
+
+function PrivacyCard() {
+  const [exporting, setExporting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const exportData = async () => {
+    setExporting(true);
+    try {
+      await downloadUserDataJson();
+      toast.success("Data exported");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Export failed");
+    } finally { setExporting(false); }
+  };
+
+  const wipeData = async () => {
+    const confirmed = window.prompt('Type "DELETE" to wipe all your data. This cannot be undone.');
+    if (confirmed !== "DELETE") return;
+    setDeleting(true);
+    try {
+      await deleteAllUserData();
+      toast.success("Data wiped");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Delete failed");
+    } finally { setDeleting(false); }
+  };
+
+  return (
+    <Card className="p-5">
+      <h2 className="text-xs font-semibold uppercase tracking-wider text-primary mb-3 flex items-center gap-1.5">
+        <ShieldCheck className="h-3.5 w-3.5" /> Data Privacy (GDPR / CCPA)
+      </h2>
+      <p className="text-xs text-muted-foreground mb-3">
+        Export every record we hold for you, or wipe it all permanently.
+      </p>
+      <div className="flex flex-col gap-2">
+        <Button variant="action" onClick={exportData} disabled={exporting} className="w-full justify-start">
+          {exporting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Download className="h-4 w-4 mr-2 text-primary" />}
+          Export my data (JSON)
+        </Button>
+        <Button variant="outline" onClick={wipeData} disabled={deleting} className="w-full justify-start text-destructive border-destructive/40 hover:bg-destructive/10">
+          {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <AlertTriangle className="h-4 w-4 mr-2" />}
+          Delete all my data
+        </Button>
+      </div>
+    </Card>
   );
 }

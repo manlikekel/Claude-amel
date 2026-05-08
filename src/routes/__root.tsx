@@ -11,6 +11,7 @@ import { InstallPrompt } from "@/components/InstallPrompt";
 import { SyncStatusPill } from "@/components/SyncStatusPill";
 import { registerServiceWorker } from "@/lib/pwa";
 import { installSyncListeners } from "@/lib/sync";
+import { getLocale, isRtl } from "@/lib/i18n";
 
 import appCss from "../styles.css?url";
 
@@ -87,7 +88,16 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  useEffect(() => { registerServiceWorker(); installSyncListeners(); }, []);
+  useEffect(() => {
+    registerServiceWorker();
+    installSyncListeners();
+    // Apply persisted locale on every mount so direction & lang reflect user choice.
+    const loc = getLocale();
+    if (typeof document !== "undefined") {
+      document.documentElement.lang = loc;
+      document.documentElement.dir = isRtl(loc) ? "rtl" : "ltr";
+    }
+  }, []);
   return (
     <ThemeProvider>
       <TabAccentSync />

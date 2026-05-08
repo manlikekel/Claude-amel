@@ -17,6 +17,12 @@ import { Route as LogRouteImport } from './routes/log'
 import { Route as ExperienceRouteImport } from './routes/experience'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ComponentsRouteImport } from './routes/components'
+import { Route as AdSbRouteImport } from './routes/ad-sb'
+import { Route as ToolsRouteImport } from './routes/tools'
+import { Route as CpdRouteImport } from './routes/cpd'
+import { Route as TypeRatingsRouteImport } from './routes/type-ratings'
+import { Route as JobsRouteImport } from './routes/jobs'
 
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
@@ -58,6 +64,36 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComponentsRoute = ComponentsRouteImport.update({
+  id: '/components',
+  path: '/components',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdSbRoute = AdSbRouteImport.update({
+  id: '/ad-sb',
+  path: '/ad-sb',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsRoute = ToolsRouteImport.update({
+  id: '/tools',
+  path: '/tools',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CpdRoute = CpdRouteImport.update({
+  id: '/cpd',
+  path: '/cpd',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TypeRatingsRoute = TypeRatingsRouteImport.update({
+  id: '/type-ratings',
+  path: '/type-ratings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JobsRoute = JobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +104,12 @@ export interface FileRoutesByFullPath {
   '/readiness': typeof ReadinessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
+  '/components': typeof ComponentsRoute
+  '/ad-sb': typeof AdSbRoute
+  '/tools': typeof ToolsRoute
+  '/cpd': typeof CpdRoute
+  '/type-ratings': typeof TypeRatingsRoute
+  '/jobs': typeof JobsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +120,12 @@ export interface FileRoutesByTo {
   '/readiness': typeof ReadinessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
+  '/components': typeof ComponentsRoute
+  '/ad-sb': typeof AdSbRoute
+  '/tools': typeof ToolsRoute
+  '/cpd': typeof CpdRoute
+  '/type-ratings': typeof TypeRatingsRoute
+  '/jobs': typeof JobsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +137,12 @@ export interface FileRoutesById {
   '/readiness': typeof ReadinessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
+  '/components': typeof ComponentsRoute
+  '/ad-sb': typeof AdSbRoute
+  '/tools': typeof ToolsRoute
+  '/cpd': typeof CpdRoute
+  '/type-ratings': typeof TypeRatingsRoute
+  '/jobs': typeof JobsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +155,12 @@ export interface FileRouteTypes {
     | '/readiness'
     | '/reset-password'
     | '/search'
+    | '/components'
+    | '/ad-sb'
+    | '/tools'
+    | '/cpd'
+    | '/type-ratings'
+    | '/jobs'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +171,12 @@ export interface FileRouteTypes {
     | '/readiness'
     | '/reset-password'
     | '/search'
+    | '/components'
+    | '/ad-sb'
+    | '/tools'
+    | '/cpd'
+    | '/type-ratings'
+    | '/jobs'
   id:
     | '__root__'
     | '/'
@@ -121,6 +187,12 @@ export interface FileRouteTypes {
     | '/readiness'
     | '/reset-password'
     | '/search'
+    | '/components'
+    | '/ad-sb'
+    | '/tools'
+    | '/cpd'
+    | '/type-ratings'
+    | '/jobs'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +204,12 @@ export interface RootRouteChildren {
   ReadinessRoute: typeof ReadinessRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
+  ComponentsRoute: typeof ComponentsRoute
+  AdSbRoute: typeof AdSbRoute
+  ToolsRoute: typeof ToolsRoute
+  CpdRoute: typeof CpdRoute
+  TypeRatingsRoute: typeof TypeRatingsRoute
+  JobsRoute: typeof JobsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +270,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/components': {
+      id: '/components'
+      path: '/components'
+      fullPath: '/components'
+      preLoaderRoute: typeof ComponentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ad-sb': {
+      id: '/ad-sb'
+      path: '/ad-sb'
+      fullPath: '/ad-sb'
+      preLoaderRoute: typeof AdSbRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools': {
+      id: '/tools'
+      path: '/tools'
+      fullPath: '/tools'
+      preLoaderRoute: typeof ToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cpd': {
+      id: '/cpd'
+      path: '/cpd'
+      fullPath: '/cpd'
+      preLoaderRoute: typeof CpdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/type-ratings': {
+      id: '/type-ratings'
+      path: '/type-ratings'
+      fullPath: '/type-ratings'
+      preLoaderRoute: typeof TypeRatingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jobs': {
+      id: '/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof JobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,6 +324,12 @@ const rootRouteChildren: RootRouteChildren = {
   ReadinessRoute: ReadinessRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
+  ComponentsRoute: ComponentsRoute,
+  AdSbRoute: AdSbRoute,
+  ToolsRoute: ToolsRoute,
+  CpdRoute: CpdRoute,
+  TypeRatingsRoute: TypeRatingsRoute,
+  JobsRoute: JobsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

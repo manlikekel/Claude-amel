@@ -17,6 +17,7 @@ import {
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
+import { SignaturePanel } from "@/components/SignaturePanel";
 import { fetchMyOrganizations, type OrganizationMembership } from "@/lib/organizations";
 import { lookupAircraft } from "@/lib/aircraft-lookup.functions";
 import { normalizeRegistration, looksLikeRegistration } from "@/lib/aircraft";
@@ -51,10 +52,12 @@ function LogEntryPage() {
     tools_used: "",
     time_hours: "",
     time_minutes: "",
+    cycles_added: "",
     is_recurring: false,
     work_date: toLocalDateTimeInput(new Date()),
     system_component: "",
     maintenance_reference: "",
+    source_citation: "",
     share_to_community: true,
     visibility: "personal" as LogVisibility,
     organization_id: null as string | null,
@@ -195,10 +198,12 @@ function LogEntryPage() {
         tools_used: log.tools_used,
         time_hours: log.time_spent_hours ? String(Math.floor(log.time_spent_hours)) : "",
         time_minutes: log.time_spent_hours ? String(Math.round((log.time_spent_hours % 1) * 60)) : "",
+        cycles_added: (log as any).cycles_added != null ? String((log as any).cycles_added) : "",
         is_recurring: log.is_recurring,
         work_date: toLocalDateTimeInput(new Date(log.created_at)),
         system_component: log.system_component ?? "",
         maintenance_reference: log.maintenance_reference ?? "",
+        source_citation: (log as any).source_citation ?? "",
         share_to_community: log.share_to_community ?? true,
         visibility: (log.visibility as LogVisibility) ?? "personal",
         organization_id: log.organization_id ?? null,
@@ -317,6 +322,11 @@ function LogEntryPage() {
 
   const handleSave = async () => {
     if (!form.fault_description) { toast.error("Add a fault description"); return; }
+    // Source citation enforcement: if engineer is sharing this anonymously to the community, demand a reference.
+    if (form.share_to_community && form.visibility === "public_anon" && !form.source_citation && !form.maintenance_reference) {
+      toast.error("Add an AMM / SB / TR reference before sharing to the community");
+      return;
+    }
     setSaving(true);
     try {
       const up = (s: string) => (s || "").toUpperCase();
@@ -332,12 +342,14 @@ function LogEntryPage() {
         action_taken: up(form.action_taken),
         tools_used: up(form.tools_used),
         time_spent_hours: (parseInt(form.time_hours) || 0) + (parseInt(form.time_minutes) || 0) / 60,
+        cycles_added: parseInt(form.cycles_added) || 0,
         image_urls: [] as string[],
         voice_note_url: null as string | null,
         is_recurring: form.is_recurring,
         created_at: form.work_date ? new Date(form.work_date).toISOString() : null,
         system_component: up(form.system_component),
         maintenance_reference: up(form.maintenance_reference),
+        source_citation: up(form.source_citation),
         share_to_community: form.share_to_community,
         visibility: form.visibility,
         organization_id: form.visibility === "team" ? (form.organization_id ?? activeOrgId) : null,
@@ -660,6 +672,30 @@ function LogEntryPage() {
             </div>
           </FieldGroup>
 
+          <FieldGroup label="Cycles Added (optional)">
+            <Input
+              value={form.cycles_added}
+              placeholder="e.g. 1 (one landing cycle)"
+              type="number"
+              min="0"
+              step="1"
+              onChange={(e) => update("cycles_added", e.target.value.replace(/[^0-9]/g, ""))}
+            />
+            <p className="mt-1 text-[10px] text-muted-foreground">For landing-gear, pressurisation, and engine cycle counting.</p>
+          </FieldGroup>
+
+          <FieldGroup label="Source Citation (required for community share)">
+            <Input
+              value={form.source_citation}
+              placeholder="e.g. AMM 32-41-00 Rev 7, SB 737-32-1142, AD 2023-04-08"
+              onChange={(e) => update("source_citation", e.target.value)}
+              className="uppercase placeholder:normal-case"
+            />
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              Required when sharing anonymously to the global knowledge base. Builds trust in the community library.
+            </p>
+          </FieldGroup>
+
           <FieldGroup label="Date & Time of Work">
             <Input
               type="datetime-local"
@@ -754,6 +790,24 @@ function LogEntryPage() {
             {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
             {isEdit ? "Update Log" : "Save Log"}
           </Button>
+
+          {isEdit && editId && (
+            <SignaturePanel
+              logId={editId}
+              logPayload={{
+                registration: form.registration,
+                aircraft_model: form.aircraft_model,
+                ata_chapter: form.ata_chapter,
+                fault_description: form.fault_description,
+                action_taken: form.action_taken,
+                root_cause: form.root_cause,
+                time_spent_hours: (parseInt(form.time_hours) || 0) + (parseInt(form.time_minutes) || 0) / 60,
+                cycles_added: parseInt(form.cycles_added) || 0,
+                source_citation: form.source_citation,
+                work_date: form.work_date,
+              }}
+            />
+          )}
         </motion.div>
       </div>
 
