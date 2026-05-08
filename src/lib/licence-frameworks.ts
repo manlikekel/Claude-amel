@@ -12,7 +12,7 @@
  * compute a single "readiness %". Adjust as users / regulators clarify.
  */
 
-export type FrameworkId = "NCAA" | "EASA" | "FAA";
+export type FrameworkId = "NCAA" | "EASA" | "FAA" | "CASA" | "TCCA" | "GCAA" | "DGCA" | "CAAC" | "ANAC";
 
 export interface FrameworkProfile {
   id: FrameworkId;
@@ -77,6 +77,91 @@ export const FRAMEWORKS: Record<FrameworkId, FrameworkProfile> = {
       "36", "49", "52", "53", "57", "71", "72", "73", "77",
     ],
     notes: "Derived from §65.77 (30 months experience) and PTS Airframe & Powerplant subject areas.",
+  },
+  CASA: {
+    id: "CASA",
+    name: "CASA Part-66",
+    fullName: "Civil Aviation Safety Authority — Australia Part 66 LAME",
+    requiredHours: 2400,
+    requiredAircraftTypes: 2,
+    requiredAtaCoverage: 18,
+    requiredJobs: 130,
+    coreAtaChapters: [
+      "21", "22", "23", "24", "27", "28", "29", "31", "32",
+      "33", "34", "36", "49", "52", "53", "57", "71", "72", "73", "77",
+    ],
+    notes: "Approximation of CASA Part 66 LAME B1.1 experience requirements (Manual of Standards Part 66).",
+  },
+  TCCA: {
+    id: "TCCA",
+    name: "TCCA AME",
+    fullName: "Transport Canada — Aircraft Maintenance Engineer (CAR Part IV)",
+    requiredHours: 4000,
+    requiredAircraftTypes: 2,
+    requiredAtaCoverage: 18,
+    requiredJobs: 150,
+    coreAtaChapters: [
+      "21", "22", "23", "24", "27", "28", "29", "31", "32",
+      "33", "34", "36", "49", "52", "53", "57", "71", "72", "73",
+    ],
+    notes: "Based on CAR 566 (48 months experience) and SAR/CAS schedule for AME M1/M2.",
+  },
+  GCAA: {
+    id: "GCAA",
+    name: "GCAA CAR-66",
+    fullName: "UAE General Civil Aviation Authority CAR-66 Part 66",
+    requiredHours: 2400,
+    requiredAircraftTypes: 2,
+    requiredAtaCoverage: 20,
+    requiredJobs: 150,
+    coreAtaChapters: [
+      "21", "22", "23", "24", "25", "26", "27", "28", "29", "31",
+      "32", "33", "34", "35", "36", "49", "52", "53", "57", "71",
+      "72", "73", "75", "77", "78",
+    ],
+    notes: "Aligned with GCAA CAR-66 (broadly EASA-equivalent) for B1/B2 categories.",
+  },
+  DGCA: {
+    id: "DGCA",
+    name: "DGCA AME",
+    fullName: "India Directorate General of Civil Aviation — CAR-66 AME",
+    requiredHours: 2000,
+    requiredAircraftTypes: 1,
+    requiredAtaCoverage: 18,
+    requiredJobs: 120,
+    coreAtaChapters: [
+      "21", "22", "23", "24", "27", "28", "29", "31", "32",
+      "33", "34", "36", "49", "52", "53", "57", "71", "72", "73",
+    ],
+    notes: "Approximation of DGCA CAR-66 (AME B1.1/B2) practical experience profile.",
+  },
+  CAAC: {
+    id: "CAAC",
+    name: "CAAC CCAR-66",
+    fullName: "China Civil Aviation Administration — CCAR-66 Aircraft Maintenance Personnel",
+    requiredHours: 2400,
+    requiredAircraftTypes: 2,
+    requiredAtaCoverage: 18,
+    requiredJobs: 150,
+    coreAtaChapters: [
+      "21", "22", "23", "24", "27", "28", "29", "31", "32",
+      "33", "34", "36", "49", "52", "53", "57", "71", "72", "73", "77",
+    ],
+    notes: "Approximation of CCAR-66R3 maintenance personnel licence experience requirements.",
+  },
+  ANAC: {
+    id: "ANAC",
+    name: "ANAC Brazil",
+    fullName: "Brazil ANAC — Mecânico de Manutenção Aeronáutica (MMA)",
+    requiredHours: 1800,
+    requiredAircraftTypes: 1,
+    requiredAtaCoverage: 16,
+    requiredJobs: 100,
+    coreAtaChapters: [
+      "21", "23", "24", "27", "28", "29", "32", "33", "34",
+      "36", "49", "52", "53", "57", "71", "72", "73",
+    ],
+    notes: "Approximation of RBAC 65 (Mecânico GMP/CEL) practical experience requirements.",
   },
 };
 
