@@ -523,6 +523,73 @@ export function formatHoursMinutes(hours: number): string {
 
 // ============ CONSTANTS ============
 
+export interface MaintenanceTemplate {
+  label: string;
+  ata_chapter: string;
+  fault_description: string;
+  action_taken: string;
+  time_hours: string;
+}
+
+export const MAINTENANCE_TEMPLATES: MaintenanceTemplate[] = [
+  {
+    label: "100-Hour Inspection",
+    ata_chapter: "05 – Time Limits",
+    fault_description: "Scheduled 100-hour maintenance inspection",
+    action_taken: "Completed 100-hour inspection per AMM. Checked all systems, lubrication, filters, and control surfaces. No defects found.",
+    time_hours: "8",
+  },
+  {
+    label: "Oil & Filter Change",
+    ata_chapter: "79 – Engine Oil",
+    fault_description: "Scheduled engine oil and filter replacement",
+    action_taken: "Drained engine oil, replaced oil filter, refilled with approved oil to correct level. Checked for leaks.",
+    time_hours: "1",
+  },
+  {
+    label: "Spark Plug Replacement",
+    ata_chapter: "74 – Ignition",
+    fault_description: "Scheduled spark plug replacement due to service interval",
+    action_taken: "Removed and inspected old spark plugs. Installed new approved spark plugs, torqued to spec. Performed engine run-up.",
+    time_hours: "3",
+  },
+  {
+    label: "Brake System Check",
+    ata_chapter: "32 – Landing Gear",
+    fault_description: "Scheduled brake system inspection and fluid check",
+    action_taken: "Inspected brake pads, discs, and hydraulic lines. Checked brake fluid level. No wear or leaks found.",
+    time_hours: "2",
+  },
+  {
+    label: "Pitot-Static System Check",
+    ata_chapter: "34 – Navigation",
+    fault_description: "Scheduled pitot-static system inspection and leak test",
+    action_taken: "Performed pitot-static leak test per AMM. Checked all connections and pitot heater operation. System within limits.",
+    time_hours: "2",
+  },
+  {
+    label: "Annual Battery Inspection",
+    ata_chapter: "24 – Electrical Power",
+    fault_description: "Annual aircraft battery inspection and capacity test",
+    action_taken: "Inspected battery terminals and case. Performed capacity test. Battery within limits. Cleaned and re-installed.",
+    time_hours: "1",
+  },
+  {
+    label: "Flight Control Rigging Check",
+    ata_chapter: "27 – Flight Controls",
+    fault_description: "Scheduled flight control rigging and range-of-motion check",
+    action_taken: "Checked all primary and secondary flight control ranges per AMM. Adjusted cable tensions. Full and free movement confirmed.",
+    time_hours: "4",
+  },
+  {
+    label: "Engine Ground Run / Power Check",
+    ata_chapter: "71 – Powerplant",
+    fault_description: "Post-maintenance engine ground run to verify normal operation",
+    action_taken: "Performed engine run-up. Checked all engine parameters within limits. No abnormal vibration, temps, or pressures.",
+    time_hours: "1",
+  },
+];
+
 export const ATA_CHAPTERS = [
   "05 – Time Limits", "06 – Dimensions & Areas", "07 – Lifting & Shoring",
   "08 – Leveling & Weighing", "09 – Towing & Taxiing", "10 – Parking & Mooring",

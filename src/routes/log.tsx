@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ArrowLeft, RotateCcw, Loader2, Search as SearchIcon, Trash2, CheckCircle2, Mic, Square, Sparkles } from "lucide-react";
+import { ArrowLeft, RotateCcw, Loader2, Search as SearchIcon, Trash2, CheckCircle2, Mic, Square, Sparkles, ClipboardList } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,12 @@ import {
   findAircraftByRegistration, upsertAircraftProfile,
   fetchProfile,
   ATA_CHAPTERS,
+  MAINTENANCE_TEMPLATES,
   type LogVisibility,
 } from "@/lib/data";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
 import { fetchMyOrganizations, type OrganizationMembership } from "@/lib/organizations";
 import { lookupAircraft } from "@/lib/aircraft-lookup.functions";
 import { normalizeRegistration, looksLikeRegistration } from "@/lib/aircraft";
@@ -370,6 +374,17 @@ function LogEntryPage() {
     }
   };
 
+  const applyTemplate = useCallback((idx: number) => {
+    const t = MAINTENANCE_TEMPLATES[idx];
+    setForm((p) => ({
+      ...p,
+      ata_chapter: t.ata_chapter,
+      fault_description: t.fault_description,
+      action_taken: t.action_taken,
+      time_hours: t.time_hours,
+    }));
+  }, []);
+
   const filteredAta = ATA_CHAPTERS.filter((a) => a.toLowerCase().includes(ataSearch.toLowerCase()));
 
   if (loadingEntry) {
@@ -399,6 +414,35 @@ function LogEntryPage() {
             </Button>
           )}
         </div>
+
+        {/* Templates picker — only show when creating a new log */}
+        {!isEdit && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="action" className="w-full justify-start gap-2 mb-4">
+                <ClipboardList className="h-4 w-4 text-primary" />
+                Use a template
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[340px] p-0 glass-strong border-glass-border" align="start">
+              <div className="p-3 border-b border-glass-border">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Maintenance Templates</p>
+              </div>
+              <div className="flex flex-col max-h-72 overflow-y-auto">
+                {MAINTENANCE_TEMPLATES.map((t, i) => (
+                  <button
+                    key={t.label}
+                    onClick={() => applyTemplate(i)}
+                    className="flex flex-col gap-0.5 px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-glass-border last:border-0 press"
+                  >
+                    <p className="text-sm font-semibold text-foreground">{t.label}</p>
+                    <p className="text-[11px] text-muted-foreground font-mono">{t.ata_chapter.split("–")[0].trim()}</p>
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4">
           {/* Registration FIRST — drives lookup */}

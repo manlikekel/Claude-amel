@@ -3,16 +3,19 @@
  * Single source of truth for filters; charts re-render on change.
  */
 import { useEffect, useMemo, useState } from "react";
-import { Clock, Wrench, Plane, Layers, Loader2 } from "lucide-react";
+import { Clock, Wrench, Plane, Layers, Loader2, Download, TrendingUp } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ResponsivePie } from "@nivo/pie";
 import { ResponsiveBar } from "@nivo/bar";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchLogs, formatHoursMinutes, type LogEntry } from "@/lib/data";
+import { useNavigate } from "@tanstack/react-router";
 import {
   applyFilters, overviewStats, pieData, timeSeries,
   uniqueAircraftTypes, uniqueRegistrations,
   TIME_RANGE_LABEL, type TimeRange, type AnalyticsFilters,
+  rangeStart,
 } from "@/lib/analytics";
 
 const RANGES: TimeRange[] = ["24h", "1w", "1m", "1y", "5y", "all"];
@@ -48,6 +51,33 @@ const PALETTE = [
   "var(--color-warning)",
 ];
 
+function computeMovingAvg(points: { x: string; hours: number }[], window = 4): { x: string; avg: number }[] {
+  return points.map((_, i) => {
+    const slice = points.slice(Math.max(0, i - window + 1), i + 1);
+    const avg = slice.reduce((s, p) => s + p.hours, 0) / slice.length;
+    return { x: points[i].x, avg: Math.round(avg * 10) / 10 };
+  });
+}
+
+function exportCsv(logs: LogEntry[], filename = "amel-export.csv") {
+  const headers = ["date", "registration", "aircraft_model", "ata_chapter", "fault_description", "action_taken", "time_spent_hours"];
+  const rows = logs.map((l) => [
+    l.created_at.slice(0, 10),
+    l.registration,
+    l.aircraft_model,
+    l.ata_chapter,
+    `"${(l.fault_description || "").replace(/"/g, '""')}"`,
+    `"${(l.action_taken || "").replace(/"/g, '""')}"`,
+    l.time_spent_hours,
+  ].join(","));
+  const csv = [headers.join(","), ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function AnalyticsDashboard() {
   const [logs, setLogs] = useState<LogEntry[] | null>(null);
   const [filters, setFilters] = useState<AnalyticsFilters>({
@@ -55,6 +85,9 @@ export function AnalyticsDashboard() {
     aircraftType: "all",
     registration: "all",
   });
+  const [showTrend, setShowTrend] = useState(false);
+  const [showYoY, setShowYoY] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchLogs().then(setLogs).catch(() => setLogs([]));
@@ -74,6 +107,34 @@ export function AnalyticsDashboard() {
   const pie = useMemo(() => pieData(filtered, filters), [filtered, filters]);
   const series = useMemo(() => timeSeries(filtered, filters.range), [filtered, filters.range]);
 
+  // YoY: same range but shifted 1 year back
+  const yoyFiltered = useMemo(() => {
+    if (!showYoY || filters.range === "all") return [];
+    const start = rangeStart(filters.range);
+    if (!start) return [];
+    const prevStart = new Date(start);
+    prevStart.setFullYear(prevStart.getFullYear() - 1);
+    const prevEnd = new Date(start);
+    return allLogs.filter((l) => {
+      const d = new Date(l.created_at);
+      return d >= prevStart && d < prevEnd;
+    });
+  }, [allLogs, filters, showYoY]);
+  const yoySeries = useMemo(() => showYoY ? timeSeries(yoyFiltered, filters.range) : { points: [], granularity: "" }, [yoyFiltered, filters.range, showYoY]);
+
+  const barData = useMemo(() => {
+    const base = series.points.map((p) => ({ x: p.x, hours: p.y, avg: 0 }));
+    if (showTrend) {
+      const avgs = computeMovingAvg(base);
+      avgs.forEach((a, i) => { base[i].avg = a.avg; });
+    }
+    if (showYoY && yoySeries.points.length > 0) {
+      const yoyMap = new Map(yoySeries.points.map((p) => [p.x, p.y]));
+      return base.map((b) => ({ ...b, prev_year: yoyMap.get(b.x) ?? 0 }));
+    }
+    return base;
+  }, [series, showTrend, showYoY, yoySeries]);
+
   if (logs === null) {
     return (
       <Card className="flex items-center justify-center p-10">
@@ -86,7 +147,18 @@ export function AnalyticsDashboard() {
     <div className="flex flex-col gap-4">
       {/* Top metric */}
       <Card className="p-5">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Total Hours Worked</p>
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Total Hours Worked</p>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 gap-1.5 text-[11px] text-muted-foreground hover:text-foreground px-2"
+            onClick={() => exportCsv(filtered)}
+          >
+            <Download className="h-3.5 w-3.5" />
+            CSV
+          </Button>
+        </div>
         <AnimatePresence mode="wait">
           <motion.p
             key={stats.totalHours}
@@ -133,6 +205,7 @@ export function AnalyticsDashboard() {
       <Card className="p-4">
         <div className="mb-2 flex items-center justify-between">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Man-hours by {pie.dimension}</p>
+          <p className="text-[10px] text-muted-foreground">Tap to drill down</p>
         </div>
         <div className="h-64 w-full">
           {pie.data.length === 0 ? (
@@ -156,6 +229,14 @@ export function AnalyticsDashboard() {
               theme={CHART_THEME as any}
               motionConfig="gentle"
               animate
+              onClick={(datum) => {
+                const label = String(datum.label);
+                if (pie.dimension === "Aircraft Type") {
+                  navigate({ to: "/logs", search: { aircraftModel: label } as any });
+                } else if (pie.dimension === "Registration") {
+                  navigate({ to: "/logs", search: { registration: label } as any });
+                }
+              }}
               tooltip={({ datum }) => (
                 <div style={CHART_THEME.tooltip.container as any}>
                   <strong style={{ color: datum.color }}>{datum.label}</strong>: {formatHoursMinutes(Number(datum.value))}
@@ -168,21 +249,38 @@ export function AnalyticsDashboard() {
 
       {/* Time series */}
       <Card className="p-4">
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-2 flex items-center justify-between gap-2">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Hours over time</p>
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{series.granularity}</p>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setShowTrend((v) => !v)}
+              className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-semibold transition-all ${showTrend ? "gold-gradient text-primary-foreground" : "glass-subtle text-muted-foreground hover:text-foreground"}`}
+            >
+              <TrendingUp className="h-3 w-3" /> Trend
+            </button>
+            {filters.range !== "all" && (
+              <button
+                onClick={() => setShowYoY((v) => !v)}
+                className={`rounded-full px-2.5 py-1 text-[10px] font-semibold transition-all ${showYoY ? "gold-gradient text-primary-foreground" : "glass-subtle text-muted-foreground hover:text-foreground"}`}
+              >
+                YoY
+              </button>
+            )}
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{series.granularity}</p>
+          </div>
         </div>
         <div className="h-56 w-full">
-          {series.points.length === 0 ? (
+          {barData.length === 0 ? (
             <EmptyChart />
           ) : (
             <ResponsiveBar
-              data={series.points.map((p) => ({ x: p.x, hours: p.y }))}
-              keys={["hours"]}
+              data={barData}
+              keys={showYoY ? ["hours", "prev_year"] : ["hours"]}
               indexBy="x"
               margin={{ top: 8, right: 12, bottom: 32, left: 32 }}
-              padding={0.3}
-              colors={["var(--color-primary)"]}
+              padding={0.25}
+              groupMode={showYoY ? "grouped" : "stacked"}
+              colors={showYoY ? ["var(--color-primary)", "var(--color-chart-2)"] : ["var(--color-primary)"]}
               borderRadius={4}
               theme={CHART_THEME as any}
               axisBottom={{ tickSize: 0, tickPadding: 6, tickRotation: 0 }}
@@ -191,9 +289,15 @@ export function AnalyticsDashboard() {
               enableLabel={false}
               animate
               motionConfig="gentle"
-              tooltip={({ value, indexValue, color }) => (
+              markers={showTrend && barData.some((d) => d.avg > 0) ? barData.map((d) => ({
+                axis: "y" as const,
+                value: d.avg,
+                lineStyle: { stroke: "var(--color-warning)", strokeWidth: 1.5, strokeDasharray: "4 3" },
+                legend: "",
+              })) : []}
+              tooltip={({ value, indexValue, id, color }) => (
                 <div style={CHART_THEME.tooltip.container as any}>
-                  <strong style={{ color }}>{indexValue}</strong>: {formatHoursMinutes(Number(value))}
+                  <strong style={{ color }}>{indexValue}</strong> {id === "prev_year" ? "(last year)" : ""}: {formatHoursMinutes(Number(value))}
                 </div>
               )}
             />

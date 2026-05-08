@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Search as SearchIcon, Loader2, Globe, User, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { Search as SearchIcon, Loader2, Globe, User, Sparkles, ThumbsUp, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { fetchLogs, ATA_CHAPTERS, type LogEntry } from "@/lib/data";
-import { fetchCommunityCandidates } from "@/lib/community-search";
+import { fetchCommunityCandidates, fetchVoteCounts, fetchMyVotes, toggleVote } from "@/lib/community-search";
 import {
   rankResults,
   rankSuggestedFixes,
@@ -13,6 +13,7 @@ import {
   type SuggestedFix,
 } from "@/lib/search-engine";
 import { motion, AnimatePresence } from "framer-motion";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/search")({
   head: () => ({
@@ -38,6 +39,8 @@ function SearchPage() {
   const [communityHits, setCommunityHits] = useState<CommunityEntry[]>([]);
   const [searching, setSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
+  const [myVotes, setMyVotes] = useState<Set<string>>(new Set());
 
   // Preload personal logs once
   useEffect(() => {
@@ -67,6 +70,10 @@ function SearchPage() {
             ataChapter: ataFilter ? ataCodeOnly(ataFilter) : undefined,
           });
           setCommunityHits(community);
+          const ids = community.map((c) => c.id);
+          const [counts, voted] = await Promise.all([fetchVoteCounts(ids), fetchMyVotes(ids)]);
+          setVoteCounts(counts);
+          setMyVotes(voted);
         } else {
           setCommunityHits([]);
         }
@@ -97,7 +104,30 @@ function SearchPage() {
     return rankSuggestedFixes({ scopedLogs: scopedMyLogs, scopedCommunity });
   }, [scopedMyLogs, scopedCommunity, query]);
 
+  // Related ATA chapters from current results
+  const relatedAta = useMemo(() => {
+    const seen = new Set<string>();
+    const chips: string[] = [];
+    for (const c of scopedCommunity) {
+      const code = c.ata_chapter?.match(/\d{1,2}/)?.[0];
+      if (code && !seen.has(code)) { seen.add(code); chips.push(c.ata_chapter.split("–")[0].trim()); }
+    }
+    return chips.slice(0, 5);
+  }, [scopedCommunity]);
+
+  const handleVote = useCallback(async (faultId: string) => {
+    const voted = myVotes.has(faultId);
+    setMyVotes((prev) => {
+      const next = new Set(prev);
+      voted ? next.delete(faultId) : next.add(faultId);
+      return next;
+    });
+    setVoteCounts((prev) => ({ ...prev, [faultId]: Math.max(0, (prev[faultId] || 0) + (voted ? -1 : 1)) }));
+    try { await toggleVote(faultId, voted); } catch { /* revert on error */ }
+  }, [myVotes]);
+
   return (
+    <TooltipProvider>
     <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
       <div className="mx-auto max-w-lg px-5 pt-10 relative">
         <div className="mb-6">
@@ -164,7 +194,19 @@ function SearchPage() {
                       <Card key={s.action} className="px-3 py-2.5">
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm font-medium text-foreground capitalize flex-1 min-w-0">🔧 {s.action}</p>
-                          <ConfidenceBadge level={s.level} />
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex items-center gap-1 cursor-help">
+                                <ConfidenceBadge level={s.level} />
+                                <Info className="h-3 w-3 text-muted-foreground/60" />
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-[200px] text-[11px]">
+                              {s.level === "High" ? "Reported in 5+ cases across your logs and community data." :
+                               s.level === "Medium" ? "Found in 2–4 cases. Confidence moderate." :
+                               "Seen in 1 case. Treat as a starting point."}
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
                         <p className="mt-0.5 text-[11px] text-muted-foreground">
                           Seen in {s.occurrences} {s.occurrences === 1 ? "case" : "cases"}
@@ -224,6 +266,13 @@ function SearchPage() {
                           <p className="text-sm text-foreground line-clamp-2">{c.fault_description}</p>
                           {c.action_taken && <p className="mt-1 text-xs text-muted-foreground line-clamp-2">✓ {c.action_taken}</p>}
                           {c.maintenance_reference && <p className="mt-0.5 text-[10px] text-primary/80 font-mono">{c.maintenance_reference}</p>}
+                          <button
+                            onClick={() => handleVote(c.id)}
+                            className={`mt-2 flex items-center gap-1.5 text-[11px] font-medium transition-colors ${myVotes.has(c.id) ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                          >
+                            <ThumbsUp className={`h-3.5 w-3.5 ${myVotes.has(c.id) ? "fill-primary" : ""}`} />
+                            {voteCounts[c.id] ? `${voteCounts[c.id]} helpful` : "Mark helpful"}
+                          </button>
                         </Card>
                       ))}
                     </div>
@@ -238,8 +287,27 @@ function SearchPage() {
             </div>
           )}
         </AnimatePresence>
+
+        {/* Related ATA chapters */}
+        {relatedAta.length > 1 && (
+          <div className="mt-6">
+            <p className="label-overline mb-2">Related ATA Chapters</p>
+            <div className="flex flex-wrap gap-2">
+              {relatedAta.map((ata) => (
+                <button
+                  key={ata}
+                  onClick={() => setAtaFilter(ata)}
+                  className="ata-chip hover:border-primary/40 hover:text-primary transition-colors press"
+                >
+                  {ata}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
+    </TooltipProvider>
   );
 }
 

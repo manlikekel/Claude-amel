@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { PlusCircle, Search, BarChart3, Target, ListChecks, Plane } from "lucide-react";
+import { PlusCircle, Search, BarChart3, Target, ListChecks, Plane, Flame, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { fetchProfile, fetchLogs, formatHoursMinutes } from "@/lib/data";
+import { fetchProfile, fetchLogs, fetchRecentLogs, formatHoursMinutes, type LogEntry } from "@/lib/data";
 import { computeReadiness, FRAMEWORKS, type FrameworkId } from "@/lib/licence-frameworks";
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
 import { useState, useEffect } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { formatDistanceToNow } from "date-fns";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -19,14 +20,34 @@ export const Route = createFileRoute("/")({
   component: Dashboard,
 });
 
+function computeStreak(logs: LogEntry[]): number {
+  if (logs.length === 0) return 0;
+  const days = new Set(logs.map((l) => new Date(l.created_at).toDateString()));
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    if (days.has(d.toDateString())) {
+      streak++;
+    } else if (i > 0) {
+      break;
+    }
+  }
+  return streak;
+}
+
 function Dashboard() {
   const [readinessPct, setReadinessPct] = useState<number | null>(null);
   const [framework, setFramework] = useState<FrameworkId>("NCAA");
   const [totalHours, setTotalHours] = useState<number>(0);
   const [totalJobs, setTotalJobs] = useState<number>(0);
+  const [streak, setStreak] = useState(0);
+  const [recentLogs, setRecentLogs] = useState<LogEntry[]>([]);
+  const [milestone, setMilestone] = useState<{ label: string; remaining: string } | null>(null);
 
   useEffect(() => {
-    Promise.all([fetchProfile(), fetchLogs()]).then(([p, all]) => {
+    Promise.all([fetchProfile(), fetchLogs(), fetchRecentLogs(3)]).then(([p, all, recent]) => {
       const fid = (p.target_framework as FrameworkId) || "NCAA";
       setFramework(fid);
       const aircraftTypes = new Set<string>();
@@ -40,8 +61,19 @@ function Dashboard() {
       }
       setTotalHours(hours);
       setTotalJobs(all.length);
+      setStreak(computeStreak(all));
+      setRecentLogs(recent);
       const r = computeReadiness({ totalHours: hours, totalJobs: all.length, aircraftTypes, ataChapters }, fid);
       setReadinessPct(r.overall);
+
+      // Find closest incomplete requirement
+      const fw = FRAMEWORKS[fid];
+      const buckets = [
+        { label: "Hours needed", remaining: `${Math.max(0, fw.requiredHours - Math.round(hours))}h remaining`, pct: Math.min(100, (hours / fw.requiredHours) * 100) },
+        { label: "Jobs needed", remaining: `${Math.max(0, fw.requiredJobs - all.length)} jobs remaining`, pct: Math.min(100, (all.length / fw.requiredJobs) * 100) },
+        { label: "ATA chapters", remaining: `${Math.max(0, fw.requiredAtaCoverage - ataChapters.size)} chapters remaining`, pct: Math.min(100, (ataChapters.size / fw.requiredAtaCoverage) * 100) },
+      ].filter((b) => b.pct < 100).sort((a, b) => b.pct - a.pct);
+      setMilestone(buckets[0] ?? null);
     });
   }, []);
 
@@ -69,7 +101,15 @@ function Dashboard() {
         >
           <Card className="hero-card relative p-6 overflow-hidden">
             <Plane className="pointer-events-none absolute -right-4 -bottom-4 h-40 w-40 text-primary opacity-[0.05] -rotate-12" strokeWidth={1} />
-            <p className="label-overline mb-2">Total Hours Logged</p>
+            <div className="flex items-start justify-between mb-2">
+              <p className="label-overline">Total Hours Logged</p>
+              {streak > 1 && (
+                <span className="streak-chip">
+                  <Flame className="h-3 w-3" />
+                  {streak}-day streak
+                </span>
+              )}
+            </div>
             <div className="flex items-baseline gap-3">
               <AnimatedHours value={totalHours} />
               <span className="text-sm text-muted-foreground font-medium">hrs</span>
@@ -131,8 +171,53 @@ function Dashboard() {
           </Link>
         </motion.div>
 
+        {/* Next milestone */}
+        {milestone && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.18 }} className="mb-5">
+            <Link to="/readiness" className="block">
+              <Card className="p-4 border-primary/20 hover:border-primary/40 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="label-overline mb-0.5">{milestone.label}</p>
+                    <p className="text-sm font-semibold text-foreground">{milestone.remaining}</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-primary shrink-0" />
+                </div>
+              </Card>
+            </Link>
+          </motion.div>
+        )}
+
+        {/* Recent activity */}
+        {recentLogs.length > 0 && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Recent Activity</h2>
+              <Link to="/logs" className="text-[11px] text-primary hover:underline">View all</Link>
+            </div>
+            <div className="flex flex-col gap-2">
+              {recentLogs.map((log) => (
+                <Link key={log.id} to="/log" search={{ id: log.id }}>
+                  <Card className="p-3 hover:border-primary/30 transition-colors">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="reg-chip text-[10px]">{log.registration || log.aircraft_model || "—"}</span>
+                      {log.ata_chapter && (
+                        <span className="ata-chip">{log.ata_chapter.split(" ")[0]}</span>
+                      )}
+                      <span className="ml-auto text-[10px] text-muted-foreground shrink-0">
+                        {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
+                      </span>
+                    </div>
+                    <p className="text-sm text-foreground line-clamp-1">{log.fault_description || "—"}</p>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         {/* Analytics */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="mb-6">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }} className="mb-6">
           <AnalyticsDashboard />
         </motion.div>
 
