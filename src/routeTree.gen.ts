@@ -9,21 +9,31 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TypeRatingsRouteImport } from './routes/type-ratings'
+import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReadinessRouteImport } from './routes/readiness'
 import { Route as LogsRouteImport } from './routes/logs'
 import { Route as LogRouteImport } from './routes/log'
+import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as ExperienceRouteImport } from './routes/experience'
-import { Route as AccountRouteImport } from './routes/account'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as CpdRouteImport } from './routes/cpd'
 import { Route as ComponentsRouteImport } from './routes/components'
 import { Route as AdSbRouteImport } from './routes/ad-sb'
-import { Route as ToolsRouteImport } from './routes/tools'
-import { Route as CpdRouteImport } from './routes/cpd'
-import { Route as TypeRatingsRouteImport } from './routes/type-ratings'
-import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as AccountRouteImport } from './routes/account'
+import { Route as IndexRouteImport } from './routes/index'
 
+const TypeRatingsRoute = TypeRatingsRouteImport.update({
+  id: '/type-ratings',
+  path: '/type-ratings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsRoute = ToolsRouteImport.update({
+  id: '/tools',
+  path: '/tools',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -49,19 +59,19 @@ const LogRoute = LogRouteImport.update({
   path: '/log',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JobsRoute = JobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExperienceRoute = ExperienceRouteImport.update({
   id: '/experience',
   path: '/experience',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AccountRoute = AccountRouteImport.update({
-  id: '/account',
-  path: '/account',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const CpdRoute = CpdRouteImport.update({
+  id: '/cpd',
+  path: '/cpd',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComponentsRoute = ComponentsRouteImport.update({
@@ -74,146 +84,150 @@ const AdSbRoute = AdSbRouteImport.update({
   path: '/ad-sb',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToolsRoute = ToolsRouteImport.update({
-  id: '/tools',
-  path: '/tools',
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CpdRoute = CpdRouteImport.update({
-  id: '/cpd',
-  path: '/cpd',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TypeRatingsRoute = TypeRatingsRouteImport.update({
-  id: '/type-ratings',
-  path: '/type-ratings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const JobsRoute = JobsRouteImport.update({
-  id: '/jobs',
-  path: '/jobs',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/ad-sb': typeof AdSbRoute
+  '/components': typeof ComponentsRoute
+  '/cpd': typeof CpdRoute
   '/experience': typeof ExperienceRoute
+  '/jobs': typeof JobsRoute
   '/log': typeof LogRoute
   '/logs': typeof LogsRoute
   '/readiness': typeof ReadinessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
-  '/components': typeof ComponentsRoute
-  '/ad-sb': typeof AdSbRoute
   '/tools': typeof ToolsRoute
-  '/cpd': typeof CpdRoute
   '/type-ratings': typeof TypeRatingsRoute
-  '/jobs': typeof JobsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/ad-sb': typeof AdSbRoute
+  '/components': typeof ComponentsRoute
+  '/cpd': typeof CpdRoute
   '/experience': typeof ExperienceRoute
+  '/jobs': typeof JobsRoute
   '/log': typeof LogRoute
   '/logs': typeof LogsRoute
   '/readiness': typeof ReadinessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
-  '/components': typeof ComponentsRoute
-  '/ad-sb': typeof AdSbRoute
   '/tools': typeof ToolsRoute
-  '/cpd': typeof CpdRoute
   '/type-ratings': typeof TypeRatingsRoute
-  '/jobs': typeof JobsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/ad-sb': typeof AdSbRoute
+  '/components': typeof ComponentsRoute
+  '/cpd': typeof CpdRoute
   '/experience': typeof ExperienceRoute
+  '/jobs': typeof JobsRoute
   '/log': typeof LogRoute
   '/logs': typeof LogsRoute
   '/readiness': typeof ReadinessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
-  '/components': typeof ComponentsRoute
-  '/ad-sb': typeof AdSbRoute
   '/tools': typeof ToolsRoute
-  '/cpd': typeof CpdRoute
   '/type-ratings': typeof TypeRatingsRoute
-  '/jobs': typeof JobsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/account'
+    | '/ad-sb'
+    | '/components'
+    | '/cpd'
     | '/experience'
+    | '/jobs'
     | '/log'
     | '/logs'
     | '/readiness'
     | '/reset-password'
     | '/search'
-    | '/components'
-    | '/ad-sb'
     | '/tools'
-    | '/cpd'
     | '/type-ratings'
-    | '/jobs'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/account'
+    | '/ad-sb'
+    | '/components'
+    | '/cpd'
     | '/experience'
+    | '/jobs'
     | '/log'
     | '/logs'
     | '/readiness'
     | '/reset-password'
     | '/search'
-    | '/components'
-    | '/ad-sb'
     | '/tools'
-    | '/cpd'
     | '/type-ratings'
-    | '/jobs'
   id:
     | '__root__'
     | '/'
     | '/account'
+    | '/ad-sb'
+    | '/components'
+    | '/cpd'
     | '/experience'
+    | '/jobs'
     | '/log'
     | '/logs'
     | '/readiness'
     | '/reset-password'
     | '/search'
-    | '/components'
-    | '/ad-sb'
     | '/tools'
-    | '/cpd'
     | '/type-ratings'
-    | '/jobs'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
+  AdSbRoute: typeof AdSbRoute
+  ComponentsRoute: typeof ComponentsRoute
+  CpdRoute: typeof CpdRoute
   ExperienceRoute: typeof ExperienceRoute
+  JobsRoute: typeof JobsRoute
   LogRoute: typeof LogRoute
   LogsRoute: typeof LogsRoute
   ReadinessRoute: typeof ReadinessRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
-  ComponentsRoute: typeof ComponentsRoute
-  AdSbRoute: typeof AdSbRoute
   ToolsRoute: typeof ToolsRoute
-  CpdRoute: typeof CpdRoute
   TypeRatingsRoute: typeof TypeRatingsRoute
-  JobsRoute: typeof JobsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/type-ratings': {
+      id: '/type-ratings'
+      path: '/type-ratings'
+      fullPath: '/type-ratings'
+      preLoaderRoute: typeof TypeRatingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools': {
+      id: '/tools'
+      path: '/tools'
+      fullPath: '/tools'
+      preLoaderRoute: typeof ToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
@@ -249,6 +263,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/jobs': {
+      id: '/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof JobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/experience': {
       id: '/experience'
       path: '/experience'
@@ -256,18 +277,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExperienceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/account': {
-      id: '/account'
-      path: '/account'
-      fullPath: '/account'
-      preLoaderRoute: typeof AccountRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/cpd': {
+      id: '/cpd'
+      path: '/cpd'
+      fullPath: '/cpd'
+      preLoaderRoute: typeof CpdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/components': {
@@ -284,32 +298,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdSbRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tools': {
-      id: '/tools'
-      path: '/tools'
-      fullPath: '/tools'
-      preLoaderRoute: typeof ToolsRouteImport
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/cpd': {
-      id: '/cpd'
-      path: '/cpd'
-      fullPath: '/cpd'
-      preLoaderRoute: typeof CpdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/type-ratings': {
-      id: '/type-ratings'
-      path: '/type-ratings'
-      fullPath: '/type-ratings'
-      preLoaderRoute: typeof TypeRatingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/jobs': {
-      id: '/jobs'
-      path: '/jobs'
-      fullPath: '/jobs'
-      preLoaderRoute: typeof JobsRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -318,19 +318,28 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
+  AdSbRoute: AdSbRoute,
+  ComponentsRoute: ComponentsRoute,
+  CpdRoute: CpdRoute,
   ExperienceRoute: ExperienceRoute,
+  JobsRoute: JobsRoute,
   LogRoute: LogRoute,
   LogsRoute: LogsRoute,
   ReadinessRoute: ReadinessRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
-  ComponentsRoute: ComponentsRoute,
-  AdSbRoute: AdSbRoute,
   ToolsRoute: ToolsRoute,
-  CpdRoute: CpdRoute,
   TypeRatingsRoute: TypeRatingsRoute,
-  JobsRoute: JobsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
