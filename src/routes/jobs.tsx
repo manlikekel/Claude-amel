@@ -72,7 +72,7 @@ function JobsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
-      <div className="mx-auto max-w-lg px-5 pt-6 relative">
+      <div className="amel-page pt-6 relative">
         <div className="mb-6 flex items-center gap-3">
           <Link to="/account"><Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button></Link>
           <div className="flex-1">
@@ -143,7 +143,7 @@ function JobsPage() {
             <p className="text-sm text-muted-foreground">No jobs posted yet.</p>
           </Card>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
             {filtered.map((j) => (
               <motion.div key={j.id} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}>
                 <Card className="p-3">

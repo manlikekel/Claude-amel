@@ -45,7 +45,7 @@ export function BottomNav() {
   }, [navigate]);
 
   return (
-    <nav aria-label="Main navigation" className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-1.5rem)] max-w-md safe-area-pb">
+    <nav aria-label="Main navigation" className="lg:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-1.5rem)] max-w-md safe-area-pb">
       <div className="glass-nav rounded-[28px] px-2 py-2.5">
         <LayoutGroup id="bottom-nav">
           <div className="flex items-center justify-around">

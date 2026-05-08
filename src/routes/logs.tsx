@@ -108,7 +108,7 @@ function LogsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
-      <div className="mx-auto max-w-lg px-5 pt-10 relative">
+      <div className="amel-page pt-10 relative">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-5">
           <p className="label-overline">Logbook</p>
           <h1 className="page-title mt-1">All <span className="gold-text">Maintenance</span> Logs</h1>
@@ -197,7 +197,7 @@ function LogsPage() {
             )}
           </Card>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
             {shown.map((log, i) => (
               <motion.div
                 key={log.id}

@@ -129,7 +129,7 @@ function SearchPage() {
   return (
     <TooltipProvider>
     <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
-      <div className="mx-auto max-w-lg px-5 pt-10 relative">
+      <div className="amel-page pt-10 relative">
         <div className="mb-6">
           <p className="label-overline">Knowledge</p>
           <h1 className="page-title mt-1">Fault <span className="gold-text">Search</span></h1>

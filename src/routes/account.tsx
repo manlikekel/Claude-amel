@@ -201,7 +201,7 @@ function AccountPage() {
 
   return (
     <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
-      <div className="mx-auto max-w-lg px-5 pt-10 relative">
+      <div className="amel-page pt-10 relative">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <p className="label-overline">Settings</p>
           <h1 className="page-title mt-1">Acc<span className="gold-text">ount</span></h1>
@@ -216,7 +216,7 @@ function AccountPage() {
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 max-w-3xl">
             <Card className="p-5">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-primary mb-4">
                 Engineer Profile

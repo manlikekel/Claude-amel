@@ -63,7 +63,7 @@ function TypeRatingsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
-      <div className="mx-auto max-w-lg px-5 pt-6 relative">
+      <div className="amel-page pt-6 relative">
         <div className="mb-6 flex items-center gap-3">
           <Link to="/account"><Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button></Link>
           <div className="flex-1">
@@ -107,7 +107,7 @@ function TypeRatingsPage() {
             <p className="text-sm text-muted-foreground">No type ratings yet.</p>
           </Card>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
             {items.map((r) => {
               const exp = r.expiry_date ? (() => { try { return differenceInDays(new Date(r.expiry_date!), new Date()); } catch { return null; } })() : null;
               const expired = exp != null && exp < 0;

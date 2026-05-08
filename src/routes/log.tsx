@@ -409,7 +409,7 @@ function LogEntryPage() {
 
   return (
     <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
-      <div className="mx-auto max-w-lg px-5 pt-6 relative">
+      <div className="amel-page pt-6 relative">
         <div className="mb-6 flex items-center gap-3">
           <Link to="/">
             <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
@@ -456,7 +456,7 @@ function LogEntryPage() {
           </Popover>
         )}
 
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 max-w-3xl">
           {/* Registration FIRST — drives lookup */}
           <FieldGroup label="Registration / Tail Number">
             <div className="flex gap-2">

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { BottomNav } from "@/components/BottomNav";
+import { SideNav } from "@/components/SideNav";
 import { AuthGate } from "@/components/AuthGate";
 import { OnboardingTour } from "@/components/OnboardingTour";
 import { Toaster } from "@/components/ui/sonner";
@@ -102,7 +103,10 @@ function RootComponent() {
     <ThemeProvider>
       <TabAccentSync />
       <AuthGate>
-        <Outlet />
+        <SideNav />
+        <main className="lg:pl-64 min-h-screen">
+          <Outlet />
+        </main>
         <BottomNav />
         <OnboardingTour />
         <LicenceExpiryToast />

@@ -120,7 +120,7 @@ function ExperiencePage() {
 
   return (
     <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
-      <div className="mx-auto max-w-lg px-5 pt-10 relative">
+      <div className="amel-page pt-10 relative">
         <div className="mb-6">
           <p className="label-overline">Engineer Record</p>
           <h1 className="page-title mt-1">My <span className="gold-text">Experience</span></h1>

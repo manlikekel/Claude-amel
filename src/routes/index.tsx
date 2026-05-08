@@ -79,7 +79,7 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
-      <div className="mx-auto max-w-lg px-5 pt-10 relative">
+      <div className="amel-page pt-10 relative">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="font-display text-3xl font-bold tracking-tight">
@@ -92,83 +92,85 @@ function Dashboard() {
           </div>
         </motion.div>
 
-        {/* HERO METRIC — Total Hours */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="mb-5"
-        >
-          <Card className="hero-card relative p-6 overflow-hidden">
-            <Plane className="pointer-events-none absolute -right-4 -bottom-4 h-40 w-40 text-primary opacity-[0.05] -rotate-12" strokeWidth={1} />
-            <div className="flex items-start justify-between mb-2">
-              <p className="label-overline">Total Hours Logged</p>
-              {streak > 1 && (
-                <span className="streak-chip">
-                  <Flame className="h-3 w-3" />
-                  {streak}-day streak
-                </span>
-              )}
-            </div>
-            <div className="flex items-baseline gap-3">
-              <AnimatedHours value={totalHours} />
-              <span className="text-sm text-muted-foreground font-medium">hrs</span>
-            </div>
-            <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="font-mono">{totalJobs}</span>
-              <span>tasks recorded</span>
-            </div>
-          </Card>
-        </motion.div>
+        {/* HERO + READINESS row: stacks on mobile, 2-col on tablet/desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4 mb-5">
+          {/* HERO METRIC — Total Hours (spans 2/3 on desktop) */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="md:col-span-2"
+          >
+            <Card className="hero-card relative p-6 overflow-hidden h-full">
+              <Plane className="pointer-events-none absolute -right-4 -bottom-4 h-40 w-40 text-primary opacity-[0.05] -rotate-12" strokeWidth={1} />
+              <div className="flex items-start justify-between mb-2">
+                <p className="label-overline">Total Hours Logged</p>
+                {streak > 1 && (
+                  <span className="streak-chip">
+                    <Flame className="h-3 w-3" />
+                    {streak}-day streak
+                  </span>
+                )}
+              </div>
+              <div className="flex items-baseline gap-3">
+                <AnimatedHours value={totalHours} />
+                <span className="text-sm text-muted-foreground font-medium">hrs</span>
+              </div>
+              <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="font-mono">{totalJobs}</span>
+                <span>tasks recorded</span>
+              </div>
+            </Card>
+          </motion.div>
 
-        {/* Quick actions */}
+          {/* Readiness widget */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
+            <Link to="/readiness" className="block h-full">
+              <Card className="p-4 h-full hover:border-primary/30 transition-colors">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Target className="h-4 w-4 text-primary" />
+                    <span className="label-overline !text-[10px]">
+                      {FRAMEWORKS[framework].name} Readiness
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-baseline gap-2 mb-2">
+                  <span className="metric text-3xl gold-text">{readinessPct ?? "—"}</span>
+                  <span className="text-sm text-muted-foreground">%</span>
+                </div>
+                <Progress value={readinessPct ?? 0} className="h-1.5" />
+                <p className="mt-2 text-[11px] text-muted-foreground">Tap for weak areas & next focus.</p>
+              </Card>
+            </Link>
+          </motion.div>
+        </div>
+
+        {/* Quick actions — 3-col on tablet+ */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="mb-6 flex flex-col gap-3"
+          className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-3"
         >
-          <Button variant="hero" size="xl" className="w-full justify-start gap-3" asChild>
+          <Button variant="hero" size="xl" className="w-full justify-start gap-3 md:col-span-1" asChild>
             <Link to="/log" search={{ id: undefined }}>
               <PlusCircle className="h-5 w-5" />
               Log New Task
             </Link>
           </Button>
-          <div className="grid grid-cols-2 gap-3">
-            <Button variant="action" size="lg" className="justify-start gap-2" asChild>
-              <Link to="/search">
-                <Search className="h-4 w-4 text-primary" />
-                Find a Fault
-              </Link>
-            </Button>
-            <Button variant="action" size="lg" className="justify-start gap-2" asChild>
-              <Link to="/experience">
-                <BarChart3 className="h-4 w-4 text-primary" />
-                Experience
-              </Link>
-            </Button>
-          </div>
-        </motion.div>
-
-        {/* Readiness widget */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }} className="mb-6">
-          <Link to="/readiness" className="block">
-            <Card className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Target className="h-4 w-4 text-primary" />
-                  <span className="label-overline !text-[10px]">
-                    {FRAMEWORKS[framework].name} Readiness
-                  </span>
-                </div>
-                <span className="metric text-2xl gold-text">
-                  {readinessPct ?? "—"}%
-                </span>
-              </div>
-              <Progress value={readinessPct ?? 0} className="h-1.5" />
-              <p className="mt-2 text-[11px] text-muted-foreground">Tap to see weak areas and next focus.</p>
-            </Card>
-          </Link>
+          <Button variant="action" size="lg" className="justify-start gap-2" asChild>
+            <Link to="/search">
+              <Search className="h-4 w-4 text-primary" />
+              Find a Fault
+            </Link>
+          </Button>
+          <Button variant="action" size="lg" className="justify-start gap-2" asChild>
+            <Link to="/experience">
+              <BarChart3 className="h-4 w-4 text-primary" />
+              Experience
+            </Link>
+          </Button>
         </motion.div>
 
         {/* Next milestone */}
@@ -188,14 +190,14 @@ function Dashboard() {
           </motion.div>
         )}
 
-        {/* Recent activity */}
+        {/* Recent activity — 3-col grid on tablet+ */}
         {recentLogs.length > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="mb-6">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Recent Activity</h2>
               <Link to="/logs" className="text-[11px] text-primary hover:underline">View all</Link>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               {recentLogs.map((log) => (
                 <Link key={log.id} to="/log" search={{ id: log.id }}>
                   <Card className="p-3 hover:border-primary/30 transition-colors">

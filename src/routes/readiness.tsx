@@ -129,7 +129,7 @@ function ReadinessPage() {
 
   return (
     <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
-      <div className="mx-auto max-w-lg px-5 pt-6 relative">
+      <div className="amel-page pt-6 relative">
         <div className="mb-6 flex items-center gap-3">
           <Link to="/"><Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button></Link>
           <div>
