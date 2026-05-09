@@ -506,12 +506,32 @@ function LogEntryPage() {
               </p>
             )}
             {lookupState === "not_found" && (
-              <p className="mt-1.5 text-[11px] text-amber-500 flex items-center gap-1.5">
-                Not found in registry — enter model manually below.
+              <p className="mt-1.5 text-[11px] text-amber-500 flex items-center gap-1.5 flex-wrap">
+                Not found in registry —{" "}
+                <a
+                  href={`https://www.google.com/search?q=${encodeURIComponent(form.registration.trim())}+aircraft+type+manufacturer`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-primary hover:text-primary/80"
+                >
+                  Search Google ↗
+                </a>
+                {" "}then fill model below.
               </p>
             )}
             {lookupState === "error" && (
-              <p className="mt-1.5 text-[11px] text-muted-foreground">Lookup failed — enter model manually.</p>
+              <p className="mt-1.5 text-[11px] text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                Lookup failed —{" "}
+                <a
+                  href={`https://www.google.com/search?q=${encodeURIComponent(form.registration.trim())}+aircraft+type+manufacturer`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-primary hover:text-primary/80"
+                >
+                  Search Google ↗
+                </a>
+                {" "}or enter model manually.
+              </p>
             )}
           </FieldGroup>
 
