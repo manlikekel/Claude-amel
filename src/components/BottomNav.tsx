@@ -114,15 +114,16 @@ export function BottomNav() {
                   {/* Icon */}
                   <span className="relative z-10">
                     <motion.span
-                      animate={isActive ? { scale: 1.12 } : { scale: 1 }}
+                      animate={isActive ? { scale: 1.15 } : { scale: 1 }}
                       transition={{ type: "spring", stiffness: 400, damping: 20 }}
                       className="block"
                     >
                       <item.icon
                         className="h-[22px] w-[22px] transition-all duration-200"
-                        strokeWidth={isActive ? 2.3 : 1.7}
+                        strokeWidth={isActive ? 2.3 : 1.8}
                         style={{
-                          color: isActive ? item.color : "var(--muted-foreground)",
+                          color: item.color,
+                          opacity: isActive ? 1 : 0.55,
                           filter: isActive
                             ? `drop-shadow(0 0 8px ${item.glow})`
                             : "none",
@@ -137,7 +138,7 @@ export function BottomNav() {
                   {/* Label */}
                   <span
                     className="relative z-10 text-[9px] font-semibold tracking-wide transition-all duration-200"
-                    style={{ color: isActive ? item.color : "var(--muted-foreground)" }}
+                    style={{ color: item.color, opacity: isActive ? 1 : 0.55 }}
                   >
                     {item.label}
                   </span>
