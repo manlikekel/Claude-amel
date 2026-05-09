@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plane, Loader2, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Plane, Loader2, Eye, EyeOff, ArrowLeft, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -16,6 +16,8 @@ export function AuthScreen() {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [authSuccess, setAuthSuccess] = useState("");
 
   const friendlyError = (err: any, ctx: Mode): string => {
     const msg = String(err?.message ?? "").toLowerCase();
@@ -40,23 +42,29 @@ export function AuthScreen() {
   };
 
   const submitSignIn = async () => {
-    if (!email || !password) { toast.error("Enter email and password"); return; }
+    if (!email || !password) { setAuthError("Enter email and password"); return; }
     setBusy(true);
+    setAuthError("");
+    setAuthSuccess("");
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+      setAuthSuccess("Signed in — welcome back!");
       toast.success("Login successful");
-      // AuthGate will swap content automatically
     } catch (err: any) {
-      toast.error(friendlyError(err, "signin"));
+      const msg = friendlyError(err, "signin");
+      setAuthError(msg);
+      toast.error(msg);
     } finally {
       setBusy(false);
     }
   };
 
   const submitSignUp = async () => {
-    if (password.length < 8) { toast.error("Use at least 8 characters for your password"); return; }
+    if (password.length < 8) { setAuthError("Use at least 8 characters for your password"); return; }
     setBusy(true);
+    setAuthError("");
+    setAuthSuccess("");
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -68,30 +76,39 @@ export function AuthScreen() {
       });
       if (error) throw error;
       if (data.session) {
+        setAuthSuccess("Account created — welcome to AMEL!");
         toast.success("Account created — welcome to AMEL!");
       } else {
+        setAuthSuccess("Account created! Check your email to confirm, then sign in.");
         toast.success("Account created! Check your email to confirm, then sign in.");
         setMode("signin");
       }
     } catch (err: any) {
-      toast.error(friendlyError(err, "signup"));
+      const msg = friendlyError(err, "signup");
+      setAuthError(msg);
+      toast.error(msg);
     } finally {
       setBusy(false);
     }
   };
 
   const submitForgot = async () => {
-    if (!email) { toast.error("Enter your email"); return; }
+    if (!email) { setAuthError("Enter your email"); return; }
     setBusy(true);
+    setAuthError("");
+    setAuthSuccess("");
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) throw error;
+      setAuthSuccess("Password reset link sent. Check your email.");
       toast.success("Password reset link sent. Check your email.");
       setMode("signin");
     } catch (err: any) {
-      toast.error(err?.message ?? "Couldn't send reset email");
+      const msg = err?.message ?? "Couldn't send reset email";
+      setAuthError(msg);
+      toast.error(msg);
     } finally {
       setBusy(false);
     }
@@ -131,7 +148,7 @@ export function AuthScreen() {
             <div className="flex gap-1 mb-5 p-1 rounded-xl glass-subtle">
               <button
                 type="button"
-                onClick={() => setMode("signin")}
+                onClick={() => { setMode("signin"); setAuthError(""); setAuthSuccess(""); }}
                 className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
                   mode === "signin" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
                 }`}
@@ -140,7 +157,7 @@ export function AuthScreen() {
               </button>
               <button
                 type="button"
-                onClick={() => setMode("signup")}
+                onClick={() => { setMode("signup"); setAuthError(""); setAuthSuccess(""); }}
                 className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
                   mode === "signup" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
                 }`}
@@ -151,7 +168,7 @@ export function AuthScreen() {
           ) : (
             <button
               type="button"
-              onClick={() => setMode("signin")}
+              onClick={() => { setMode("signin"); setAuthError(""); setAuthSuccess(""); }}
               className="mb-4 inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Back to sign in
@@ -180,7 +197,7 @@ export function AuthScreen() {
                 type="email"
                 placeholder="Email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setAuthError(""); }}
                 required
                 autoComplete="email"
               />
@@ -191,7 +208,7 @@ export function AuthScreen() {
                     type={showPwd ? "text" : "password"}
                     placeholder={mode === "signup" ? "Password (min 8 chars)" : "Password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => { setPassword(e.target.value); setAuthError(""); }}
                     required
                     minLength={8}
                     autoComplete={mode === "signin" ? "current-password" : "new-password"}
@@ -225,6 +242,27 @@ export function AuthScreen() {
                 {mode === "signup" && "Create Account"}
                 {mode === "forgot" && "Send reset link"}
               </Button>
+
+              {authError && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+                >
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  {authError}
+                </motion.div>
+              )}
+              {authSuccess && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-3 py-2.5 text-sm text-primary"
+                >
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  {authSuccess}
+                </motion.div>
+              )}
             </motion.form>
           </AnimatePresence>
         </Card>

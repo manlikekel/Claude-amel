@@ -4,7 +4,7 @@ import {
   LogOut, Save, Loader2, Mail, Users, Plus, LogIn, Target, Copy, Check,
   KeyRound, Sun, Moon, ShieldCheck, Trash2, Plane, Cog, ShieldAlert,
   Wrench, GraduationCap, Briefcase, Globe, BadgeCheck, Download, AlertTriangle,
-  Calendar,
+  Calendar, Fingerprint,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -27,6 +27,7 @@ import { motion } from "framer-motion";
 import { LOCALES, getLocale, setLocale, type Locale } from "@/lib/i18n";
 import { downloadUserDataJson, deleteAllUserData } from "@/lib/data-export";
 import { recordAudit } from "@/lib/audit";
+import { isBiometricSupported, isBiometricEnabled, registerBiometric, disableBiometric } from "@/lib/biometric";
 
 function exportLicencesIcs(licences: LicenceEntry[]) {
   const withExpiry = licences.filter((l) => l.expiry_date);
@@ -607,6 +608,8 @@ function AccountPage() {
 
             <PrivacyCard />
 
+            <BiometricCard user={user} profile={profile} />
+
             <Card className="p-5">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-primary mb-3">
                 Session
@@ -749,6 +752,65 @@ function LocaleCard() {
       <p className="mt-3 text-[10px] text-muted-foreground">
         Aviation terminology requires native-speaking AME translators for full accuracy. Help improve translations via support@amel.app.
       </p>
+    </Card>
+  );
+}
+
+function BiometricCard({ user, profile }: { user: ReturnType<typeof useAuth>["user"]; profile: ProfileData }) {
+  const [enabled, setEnabled] = useState(isBiometricEnabled());
+  const [busy, setBusy] = useState(false);
+
+  if (!isBiometricSupported()) return null;
+
+  const handleToggle = async () => {
+    if (enabled) {
+      disableBiometric();
+      setEnabled(false);
+      toast.success("Biometric lock disabled");
+    } else {
+      setBusy(true);
+      try {
+        const displayName = profile.name || user?.email || "AMEL User";
+        await registerBiometric(user?.id ?? "unknown", displayName);
+        setEnabled(true);
+        toast.success("Biometric lock enabled");
+      } catch (e: any) {
+        toast.error(e?.message ?? "Biometric setup failed — make sure your device supports Face ID or fingerprint.");
+      } finally {
+        setBusy(false);
+      }
+    }
+  };
+
+  return (
+    <Card className="p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <Fingerprint className="h-4 w-4 text-primary" />
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Biometric Lock</h2>
+      </div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-foreground">Lock app with Face ID / Fingerprint</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            Requires biometric verification each time you return to the app after 5 minutes in the background.
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={enabled}
+          data-on={enabled ? "true" : "false"}
+          onClick={handleToggle}
+          disabled={busy}
+          className="amel-switch"
+        />
+      </div>
+      {busy && (
+        <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          Waiting for biometric prompt…
+        </div>
+      )}
     </Card>
   );
 }

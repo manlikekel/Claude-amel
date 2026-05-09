@@ -10,6 +10,7 @@ import { TabAccentSync } from "@/hooks/use-tab-accent";
 import { LicenceExpiryToast } from "@/components/LicenceExpiryToast";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { SyncStatusPill } from "@/components/SyncStatusPill";
+import { BiometricLock } from "@/components/BiometricLock";
 import { registerServiceWorker } from "@/lib/pwa";
 import { installSyncListeners } from "@/lib/sync";
 import { getLocale, isRtl } from "@/lib/i18n";
@@ -117,24 +118,26 @@ function RootComponent() {
   return (
     <ThemeProvider>
       <TabAccentSync />
-      <AuthGate>
-        <SideNav />
-        <main className="lg:pl-64 min-h-screen">
-          <Outlet />
-        </main>
-        <BottomNav />
-        <OnboardingTour />
-        <LicenceExpiryToast />
-        <InstallPrompt />
-        <SyncStatusPill />
-        <Toaster
-          position="top-center"
-          offset={20}
-          richColors
-          closeButton
-          toastOptions={{ duration: 4000 }}
-        />
-      </AuthGate>
+      <BiometricLock>
+        <AuthGate>
+          <SideNav />
+          <main className="lg:pl-64 min-h-screen">
+            <Outlet />
+          </main>
+          <BottomNav />
+          <OnboardingTour />
+          <LicenceExpiryToast />
+          <InstallPrompt />
+          <SyncStatusPill />
+        </AuthGate>
+      </BiometricLock>
+      <Toaster
+        position="top-center"
+        offset={20}
+        richColors
+        closeButton
+        toastOptions={{ duration: 4000 }}
+      />
     </ThemeProvider>
   );
 }
