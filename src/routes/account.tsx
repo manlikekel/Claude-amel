@@ -4,6 +4,7 @@ import {
   LogOut, Save, Loader2, Mail, Users, Plus, LogIn, Target, Copy, Check,
   KeyRound, Sun, Moon, ShieldCheck, Trash2, Plane, Cog, ShieldAlert,
   Wrench, GraduationCap, Briefcase, Globe, BadgeCheck, Download, AlertTriangle,
+  Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -26,6 +27,39 @@ import { motion } from "framer-motion";
 import { LOCALES, getLocale, setLocale, type Locale } from "@/lib/i18n";
 import { downloadUserDataJson, deleteAllUserData } from "@/lib/data-export";
 import { recordAudit } from "@/lib/audit";
+
+function exportLicencesIcs(licences: LicenceEntry[]) {
+  const withExpiry = licences.filter((l) => l.expiry_date);
+  if (withExpiry.length === 0) { toast.error("No licences with expiry dates"); return; }
+
+  const fmtDate = (iso: string) => iso.replace(/-/g, "").slice(0, 8);
+  const now = new Date().toISOString().replace(/[-:T.]/g, "").slice(0, 15) + "Z";
+
+  const events = withExpiry.map((l) => [
+    "BEGIN:VEVENT",
+    `UID:amel-licence-${l.id}@amel`,
+    `DTSTAMP:${now}`,
+    `DTSTART;VALUE=DATE:${fmtDate(l.expiry_date!)}`,
+    `DTEND;VALUE=DATE:${fmtDate(l.expiry_date!)}`,
+    `SUMMARY:Licence Expiry: ${l.licence_type} (${l.authority})`,
+    `DESCRIPTION:Licence No: ${l.licence_number}\\nAuthority: ${l.authority}\\nType: ${l.licence_type}`,
+    "BEGIN:VALARM",
+    "TRIGGER:-P60D",
+    "ACTION:DISPLAY",
+    "DESCRIPTION:Licence expiring in 60 days",
+    "END:VALARM",
+    "END:VEVENT",
+  ].join("\r\n")).join("\r\n");
+
+  const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//AMEL//Logbook//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH", events, "END:VCALENDAR"].join("\r\n");
+
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "amel-licence-renewals.ics";
+  a.click();
+  toast.success(`Exported ${withExpiry.length} licence reminder${withExpiry.length === 1 ? "" : "s"} to calendar`);
+}
 
 export const Route = createFileRoute("/account")({
   head: () => ({
@@ -434,7 +468,10 @@ function AccountPage() {
             <Card className="p-5">
               <div className="flex items-center gap-2 mb-3">
                 <Plane className="h-4 w-4 text-primary" />
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">Licences</h2>
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-primary flex-1">Licences</h2>
+                <Button variant="ghost" size="sm" onClick={() => exportLicencesIcs(licences)} title="Export licence expiry reminders to calendar (.ics)">
+                  <Calendar className="h-4 w-4" />
+                </Button>
               </div>
               <p className="text-[11px] text-muted-foreground mb-3">
                 Track issuing authority, ratings and expiry. We'll remind you as they approach renewal.

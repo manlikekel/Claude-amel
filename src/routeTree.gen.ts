@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TeamRouteImport } from './routes/team'
+import { Route as FleetRouteImport } from './routes/fleet'
 import { Route as TypeRatingsRouteImport } from './routes/type-ratings'
 import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as SearchRouteImport } from './routes/search'
@@ -24,6 +26,8 @@ import { Route as AdSbRouteImport } from './routes/ad-sb'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TeamRoute = TeamRouteImport.update({ id: '/team', path: '/team', getParentRoute: () => rootRouteImport } as any)
+const FleetRoute = FleetRouteImport.update({ id: '/fleet', path: '/fleet', getParentRoute: () => rootRouteImport } as any)
 const TypeRatingsRoute = TypeRatingsRouteImport.update({
   id: '/type-ratings',
   path: '/type-ratings',
@@ -102,12 +106,14 @@ export interface FileRoutesByFullPath {
   '/components': typeof ComponentsRoute
   '/cpd': typeof CpdRoute
   '/experience': typeof ExperienceRoute
+  '/fleet': typeof FleetRoute
   '/jobs': typeof JobsRoute
   '/log': typeof LogRoute
   '/logs': typeof LogsRoute
   '/readiness': typeof ReadinessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
+  '/team': typeof TeamRoute
   '/tools': typeof ToolsRoute
   '/type-ratings': typeof TypeRatingsRoute
 }
@@ -118,12 +124,14 @@ export interface FileRoutesByTo {
   '/components': typeof ComponentsRoute
   '/cpd': typeof CpdRoute
   '/experience': typeof ExperienceRoute
+  '/fleet': typeof FleetRoute
   '/jobs': typeof JobsRoute
   '/log': typeof LogRoute
   '/logs': typeof LogsRoute
   '/readiness': typeof ReadinessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
+  '/team': typeof TeamRoute
   '/tools': typeof ToolsRoute
   '/type-ratings': typeof TypeRatingsRoute
 }
@@ -135,12 +143,14 @@ export interface FileRoutesById {
   '/components': typeof ComponentsRoute
   '/cpd': typeof CpdRoute
   '/experience': typeof ExperienceRoute
+  '/fleet': typeof FleetRoute
   '/jobs': typeof JobsRoute
   '/log': typeof LogRoute
   '/logs': typeof LogsRoute
   '/readiness': typeof ReadinessRoute
   '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
+  '/team': typeof TeamRoute
   '/tools': typeof ToolsRoute
   '/type-ratings': typeof TypeRatingsRoute
 }
@@ -153,12 +163,14 @@ export interface FileRouteTypes {
     | '/components'
     | '/cpd'
     | '/experience'
+    | '/fleet'
     | '/jobs'
     | '/log'
     | '/logs'
     | '/readiness'
     | '/reset-password'
     | '/search'
+    | '/team'
     | '/tools'
     | '/type-ratings'
   fileRoutesByTo: FileRoutesByTo
@@ -169,12 +181,14 @@ export interface FileRouteTypes {
     | '/components'
     | '/cpd'
     | '/experience'
+    | '/fleet'
     | '/jobs'
     | '/log'
     | '/logs'
     | '/readiness'
     | '/reset-password'
     | '/search'
+    | '/team'
     | '/tools'
     | '/type-ratings'
   id:
@@ -185,12 +199,14 @@ export interface FileRouteTypes {
     | '/components'
     | '/cpd'
     | '/experience'
+    | '/fleet'
     | '/jobs'
     | '/log'
     | '/logs'
     | '/readiness'
     | '/reset-password'
     | '/search'
+    | '/team'
     | '/tools'
     | '/type-ratings'
   fileRoutesById: FileRoutesById
@@ -202,12 +218,14 @@ export interface RootRouteChildren {
   ComponentsRoute: typeof ComponentsRoute
   CpdRoute: typeof CpdRoute
   ExperienceRoute: typeof ExperienceRoute
+  FleetRoute: typeof FleetRoute
   JobsRoute: typeof JobsRoute
   LogRoute: typeof LogRoute
   LogsRoute: typeof LogsRoute
   ReadinessRoute: typeof ReadinessRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
+  TeamRoute: typeof TeamRoute
   ToolsRoute: typeof ToolsRoute
   TypeRatingsRoute: typeof TypeRatingsRoute
 }
@@ -277,6 +295,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExperienceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fleet': {
+      id: '/fleet'
+      path: '/fleet'
+      fullPath: '/fleet'
+      preLoaderRoute: typeof FleetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/team': {
+      id: '/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cpd': {
       id: '/cpd'
       path: '/cpd'
@@ -322,12 +354,14 @@ const rootRouteChildren: RootRouteChildren = {
   ComponentsRoute: ComponentsRoute,
   CpdRoute: CpdRoute,
   ExperienceRoute: ExperienceRoute,
+  FleetRoute: FleetRoute,
   JobsRoute: JobsRoute,
   LogRoute: LogRoute,
   LogsRoute: LogsRoute,
   ReadinessRoute: ReadinessRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
+  TeamRoute: TeamRoute,
   ToolsRoute: ToolsRoute,
   TypeRatingsRoute: TypeRatingsRoute,
 }

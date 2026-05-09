@@ -176,7 +176,7 @@ function Dashboard() {
               Log New Task
             </Link>
           </Button>
-          <div className="grid grid-cols-2 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <Button variant="action" size="lg" className="justify-start gap-2" asChild>
               <Link to="/search">
                 <Search className="h-4 w-4 text-primary" />
@@ -188,6 +188,9 @@ function Dashboard() {
                 <BarChart3 className="h-4 w-4 text-primary" />
                 Experience
               </Link>
+            </Button>
+            <Button variant="action" size="lg" className="justify-start gap-2" asChild>
+              <Link to="/fleet"><Plane className="h-4 w-4 text-primary" />Fleet</Link>
             </Button>
           </div>
         </motion.div>

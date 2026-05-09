@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ArrowLeft, RotateCcw, Loader2, Search as SearchIcon, Trash2, CheckCircle2, Mic, Square, Sparkles, ClipboardList } from "lucide-react";
+import { ArrowLeft, RotateCcw, Loader2, Search as SearchIcon, Trash2, CheckCircle2, Mic, Square, Sparkles, ClipboardList, Share2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
@@ -397,6 +397,30 @@ function LogEntryPage() {
     }
   };
 
+  const handleShare = async () => {
+    const el = document.getElementById("log-share-card");
+    if (!el) return;
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const canvas = await html2canvas(el, { backgroundColor: null, scale: 2 });
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        const file = new File([blob], "maintenance-log.png", { type: "image/png" });
+        if (navigator.canShare?.({ files: [file] })) {
+          await navigator.share({ files: [file], title: "Maintenance Log", text: form.fault_description || "AMEL Log Entry" });
+        } else {
+          // Fallback: download
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = "maintenance-log.png";
+          a.click();
+        }
+      }, "image/png");
+    } catch (e) {
+      toast.error("Share failed");
+    }
+  };
+
   const applyTemplate = useCallback((idx: number) => {
     const t = MAINTENANCE_TEMPLATES[idx];
     setForm((p) => ({
@@ -432,6 +456,11 @@ function LogEntryPage() {
             </h1>
           </div>
           {isEdit && (
+            <Button variant="ghost" size="icon" onClick={handleShare} aria-label="Share log">
+              <Share2 className="h-4 w-4" />
+            </Button>
+          )}
+          {isEdit && (
             <Button variant="ghost" size="icon" className="text-destructive" onClick={handleDelete}>
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -465,6 +494,24 @@ function LogEntryPage() {
               </div>
             </PopoverContent>
           </Popover>
+        )}
+
+        {isEdit && (
+          <div id="log-share-card" className="mb-4 rounded-2xl glass p-4">
+            <div className="flex items-center justify-between mb-2">
+              {form.registration && <span className="reg-chip">{form.registration}</span>}
+              {form.ata_chapter && <span className="ata-chip">{form.ata_chapter.split(" – ")[0]}</span>}
+            </div>
+            {form.aircraft_model && (
+              <p className="text-xs text-muted-foreground font-medium mb-1">{form.aircraft_model}</p>
+            )}
+            {form.fault_description && (
+              <p className="text-sm text-foreground line-clamp-2 mb-1">{form.fault_description}</p>
+            )}
+            {form.action_taken && (
+              <p className="text-xs text-muted-foreground line-clamp-2">✓ {form.action_taken}</p>
+            )}
+          </div>
         )}
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 max-w-3xl">

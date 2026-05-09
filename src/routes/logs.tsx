@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { fetchLogs, fetchProfile, formatHoursMinutes, type LogEntry, type ProfileData } from "@/lib/data";
 import { generateNcaaPracticalExperiencePDF } from "@/lib/pdf-export-ncaa";
+import { generateEasaPracticalExperiencePDF } from "@/lib/pdf-export-easa";
+import { generateFaaPracticalExperiencePDF } from "@/lib/pdf-export-faa";
 import { motion } from "framer-motion";
 
 type SortKey = "newest" | "oldest" | "time" | "aircraft";
@@ -182,16 +184,17 @@ function LogsPage() {
               <option value="aircraft">By aircraft</option>
             </select>
           </div>
-          <Button
-            variant="action"
-            size="sm"
-            className="gap-1.5 shrink-0"
-            onClick={handleNcaaExport}
-            disabled={!profile || filtered.length === 0}
-          >
-            <FileDown className="h-3.5 w-3.5" />
-            NCAA PDF
-          </Button>
+          <div className="flex gap-1 shrink-0">
+            <Button variant="action" size="sm" className="gap-1 px-2" onClick={handleNcaaExport} disabled={!profile || filtered.length === 0} title="Export NCAA O-PEL-020">
+              <FileDown className="h-3.5 w-3.5" /><span className="text-[10px]">NCAA</span>
+            </Button>
+            <Button variant="action" size="sm" className="gap-1 px-2" onClick={() => profile && generateEasaPracticalExperiencePDF({ logs: filtered, profile })} disabled={!profile || filtered.length === 0} title="Export EASA Part-66">
+              <span className="text-[10px] font-bold">EASA</span>
+            </Button>
+            <Button variant="action" size="sm" className="gap-1 px-2" onClick={() => profile && generateFaaPracticalExperiencePDF({ logs: filtered, profile })} disabled={!profile || filtered.length === 0} title="Export FAA A&P">
+              <span className="text-[10px] font-bold">FAA</span>
+            </Button>
+          </div>
         </div>
 
         {showFilters && (
