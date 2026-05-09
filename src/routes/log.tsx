@@ -70,6 +70,7 @@ function LogEntryPage() {
   const [showAtaDropdown, setShowAtaDropdown] = useState(false);
   const [lookupState, setLookupState] = useState<"idle" | "loading" | "found" | "not_found" | "error">("idle");
   const [lookupSource, setLookupSource] = useState<string | null>(null);
+  const lookupDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [loadingEntry, setLoadingEntry] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [recording, setRecording] = useState(false);
@@ -244,6 +245,16 @@ function LogEntryPage() {
       }
     } catch { /* ignore */ }
   }, [isEdit]);
+
+  // Auto-lookup while typing — fires 700 ms after the user stops typing a valid reg
+  useEffect(() => {
+    if (lookupDebounceRef.current) clearTimeout(lookupDebounceRef.current);
+    const reg = form.registration.trim();
+    if (!reg || !looksLikeRegistration(reg) || lookupState === "found") return;
+    lookupDebounceRef.current = setTimeout(() => runLookup(reg), 700);
+    return () => { if (lookupDebounceRef.current) clearTimeout(lookupDebounceRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.registration]);
 
   const update = useCallback(
     (field: string, value: string | boolean | string[] | null) =>
@@ -463,9 +474,13 @@ function LogEntryPage() {
               <Input
                 value={form.registration}
                 placeholder="e.g. 5N-XEL"
-                onChange={(e) => { update("registration", e.target.value.toUpperCase()); setLookupState("idle"); }}
+                onChange={(e) => {
+                  const val = e.target.value.toUpperCase();
+                  update("registration", val);
+                  if (val !== form.registration) setLookupState("idle");
+                }}
                 onBlur={(e) => runLookup(e.target.value)}
-                className="uppercase"
+                className="uppercase font-mono tracking-widest"
               />
               <Button
                 variant="action"
@@ -484,14 +499,19 @@ function LogEntryPage() {
             )}
             {lookupState === "found" && (
               <p className="mt-1.5 text-[11px] text-primary flex items-center gap-1.5">
-                <CheckCircle2 className="h-3 w-3" /> Auto-filled from {lookupSource ?? "database"}
+                <CheckCircle2 className="h-3 w-3" />
+                {form.aircraft_model
+                  ? `${form.aircraft_model}${form.manufacturer ? ` · ${form.manufacturer}` : ""} — via ${lookupSource ?? "database"}`
+                  : `Auto-filled from ${lookupSource ?? "database"}`}
               </p>
             )}
             {lookupState === "not_found" && (
-              <p className="mt-1.5 text-[11px] text-muted-foreground">No database match. Enter model manually.</p>
+              <p className="mt-1.5 text-[11px] text-amber-500 flex items-center gap-1.5">
+                Not found in registry — enter model manually below.
+              </p>
             )}
             {lookupState === "error" && (
-              <p className="mt-1.5 text-[11px] text-muted-foreground">Lookup failed. Enter model manually.</p>
+              <p className="mt-1.5 text-[11px] text-muted-foreground">Lookup failed — enter model manually.</p>
             )}
           </FieldGroup>
 
