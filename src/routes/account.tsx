@@ -757,7 +757,7 @@ function LocaleCard() {
 }
 
 function BiometricCard({ user, profile }: { user: ReturnType<typeof useAuth>["user"]; profile: ProfileData }) {
-  const [enabled, setEnabled] = useState(isBiometricEnabled());
+  const [enabled, setEnabled] = useState(() => typeof window !== "undefined" && isBiometricEnabled());
   const [busy, setBusy] = useState(false);
 
   if (!isBiometricSupported()) return null;

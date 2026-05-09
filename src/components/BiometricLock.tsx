@@ -32,7 +32,7 @@ export function BiometricLock({ children }: { children: React.ReactNode }) {
 
   // Re-lock after 5 minutes in the background
   useEffect(() => {
-    if (!hasSession || !isBiometricEnabled()) return;
+    if (!hasSession || typeof localStorage === "undefined" || !isBiometricEnabled()) return;
 
     const scheduleRelock = () => {
       if (relockTimer.current) clearTimeout(relockTimer.current);
