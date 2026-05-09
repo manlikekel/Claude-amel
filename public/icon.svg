@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0d0b14"/>
+  <circle cx="256" cy="256" r="220" fill="none" stroke="#c9973a" stroke-width="2" stroke-opacity="0.18"/>
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#c9973a" stroke-width="1" stroke-opacity="0.10"/>
+  <g transform="translate(256,190)" fill="#c9973a" opacity="0.90">
+    <ellipse cx="0" cy="0" rx="54" ry="10" transform="rotate(-20)"/>
+    <path d="M-6,-3 L-62,28 L-42,32 L6,6 Z"/>
+    <path d="M6,-3 L62,28 L42,32 L-6,6 Z"/>
+    <path d="M-38,-1 L-58,-20 L-46,-1 Z"/>
+    <path d="M38,-1 L58,-20 L46,-1 Z"/>
+  </g>
+  <line x1="72" y1="312" x2="440" y2="312" stroke="#c9973a" stroke-width="1.5" stroke-opacity="0.30"/>
+  <text x="256" y="372" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="110" text-anchor="middle" letter-spacing="-2">
+    <tspan fill="#f0ece4">AM</tspan><tspan fill="#c9973a">EL</tspan>
+  </text>
+  <text x="256" y="408" font-family="Arial, sans-serif" font-weight="400" font-size="22" text-anchor="middle" fill="#c9973a" letter-spacing="5" opacity="0.65">LOGBOOK</text>
+</svg>
