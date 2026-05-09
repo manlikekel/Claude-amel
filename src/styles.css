@@ -269,6 +269,29 @@
       inset 0 1px 0 0 oklch(1 0 0 / 0.06),
       0 16px 48px -12px oklch(0 0 0 / 0.6);
   }
+  /* Liquid glass nav — colorful frosted pill */
+  .liquid-nav {
+    background: oklch(0.08 0.006 280 / 0.72);
+    backdrop-filter: blur(40px) saturate(2.2) brightness(1.1);
+    -webkit-backdrop-filter: blur(40px) saturate(2.2) brightness(1.1);
+    border: 1px solid oklch(1 0 0 / 0.13);
+    box-shadow:
+      inset 0 1.5px 0 0 oklch(1 0 0 / 0.12),
+      inset 0 -1px 0 0 oklch(0 0 0 / 0.08),
+      0 8px 32px -8px oklch(0 0 0 / 0.55),
+      0 2px 8px -2px oklch(0 0 0 / 0.35);
+  }
+  .light .liquid-nav {
+    background: oklch(1 0 0 / 0.55);
+    backdrop-filter: blur(40px) saturate(2.5) brightness(1.05);
+    -webkit-backdrop-filter: blur(40px) saturate(2.5) brightness(1.05);
+    border: 1px solid oklch(0 0 0 / 0.08);
+    box-shadow:
+      inset 0 1.5px 0 0 oklch(1 0 0 / 0.8),
+      inset 0 -1px 0 0 oklch(0 0 0 / 0.04),
+      0 8px 32px -8px oklch(0 0 0 / 0.18),
+      0 2px 8px -2px oklch(0 0 0 / 0.1);
+  }
   .surface-opaque {
     background-color: var(--surface-opaque) !important;
     backdrop-filter: none !important;
