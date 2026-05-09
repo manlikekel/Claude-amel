@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowDownUp, Filter, Loader2, Search as SearchIcon, Wrench, X } from "lucide-react";
+import { ArrowDownUp, FileDown, Filter, Loader2, Search as SearchIcon, Wrench, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { fetchLogs, formatHoursMinutes, type LogEntry } from "@/lib/data";
+import { fetchLogs, fetchProfile, formatHoursMinutes, type LogEntry, type ProfileData } from "@/lib/data";
+import { generateNcaaPracticalExperiencePDF } from "@/lib/pdf-export-ncaa";
 import { motion } from "framer-motion";
 
 type SortKey = "newest" | "oldest" | "time" | "aircraft";
@@ -23,6 +24,7 @@ const PAGE_SIZE = 25;
 
 function LogsPage() {
   const [logs, setLogs] = useState<LogEntry[] | null>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [query, setQuery] = useState("");
   const [model, setModel] = useState("all");
   const [reg, setReg] = useState("all");
@@ -35,6 +37,7 @@ function LogsPage() {
 
   useEffect(() => {
     fetchLogs().then(setLogs).catch(() => setLogs([]));
+    fetchProfile().then(setProfile).catch(() => {});
   }, []);
 
   const all = logs ?? [];
@@ -83,6 +86,11 @@ function LogsPage() {
   }, [all, query, model, reg, ata, from, to, sort]);
 
   const totalHours = filtered.reduce((s, l) => s + (l.time_spent_hours || 0), 0);
+
+  const handleNcaaExport = () => {
+    if (!profile) return;
+    generateNcaaPracticalExperiencePDF({ logs: filtered, profile });
+  };
 
   // Reset page when filters change
   useEffect(() => { setVisible(PAGE_SIZE); }, [query, model, reg, ata, from, to, sort]);
@@ -154,6 +162,16 @@ function LogsPage() {
               <option value="aircraft">By aircraft</option>
             </select>
           </div>
+          <Button
+            variant="action"
+            size="sm"
+            className="gap-1.5 shrink-0"
+            onClick={handleNcaaExport}
+            disabled={!profile || filtered.length === 0}
+          >
+            <FileDown className="h-3.5 w-3.5" />
+            NCAA PDF
+          </Button>
         </div>
 
         {showFilters && (
