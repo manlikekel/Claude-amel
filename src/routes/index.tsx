@@ -79,7 +79,7 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
-      <div className="amel-page pt-10 relative">
+      <div className="amel-page pt-6 sm:pt-10 relative">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="font-display text-3xl font-bold tracking-tight">
@@ -92,8 +92,8 @@ function Dashboard() {
           </div>
         </motion.div>
 
-        {/* HERO + READINESS row: stacks on mobile, 2-col on tablet/desktop */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-4 mb-5">
+        {/* HERO + READINESS row: stacks on mobile, 3-col on tablet+ */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4 mb-5">
           {/* HERO METRIC — Total Hours (spans 2/3 on desktop) */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -114,7 +114,6 @@ function Dashboard() {
               </div>
               <div className="flex items-baseline gap-3">
                 <AnimatedHours value={totalHours} />
-                <span className="text-sm text-muted-foreground font-medium">hrs</span>
               </div>
               <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
                 <span className="font-mono">{totalJobs}</span>
@@ -146,31 +145,33 @@ function Dashboard() {
           </motion.div>
         </div>
 
-        {/* Quick actions — 3-col on tablet+ */}
+        {/* Quick actions */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-3"
+          className="mb-6 flex flex-col gap-3"
         >
-          <Button variant="hero" size="xl" className="w-full justify-start gap-3 md:col-span-1" asChild>
+          <Button variant="hero" size="xl" className="w-full justify-start gap-3" asChild>
             <Link to="/log" search={{ id: undefined }}>
               <PlusCircle className="h-5 w-5" />
               Log New Task
             </Link>
           </Button>
-          <Button variant="action" size="lg" className="justify-start gap-2" asChild>
-            <Link to="/search">
-              <Search className="h-4 w-4 text-primary" />
-              Find a Fault
-            </Link>
-          </Button>
-          <Button variant="action" size="lg" className="justify-start gap-2" asChild>
-            <Link to="/experience">
-              <BarChart3 className="h-4 w-4 text-primary" />
-              Experience
-            </Link>
-          </Button>
+          <div className="grid grid-cols-2 md:grid-cols-2 gap-3">
+            <Button variant="action" size="lg" className="justify-start gap-2" asChild>
+              <Link to="/search">
+                <Search className="h-4 w-4 text-primary" />
+                Find a Fault
+              </Link>
+            </Button>
+            <Button variant="action" size="lg" className="justify-start gap-2" asChild>
+              <Link to="/experience">
+                <BarChart3 className="h-4 w-4 text-primary" />
+                Experience
+              </Link>
+            </Button>
+          </div>
         </motion.div>
 
         {/* Next milestone */}
@@ -197,7 +198,7 @@ function Dashboard() {
               <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Recent Activity</h2>
               <Link to="/logs" className="text-[11px] text-primary hover:underline">View all</Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {recentLogs.map((log) => (
                 <Link key={log.id} to="/log" search={{ id: log.id }}>
                   <Card className="p-3 hover:border-primary/30 transition-colors">
@@ -242,13 +243,21 @@ function Dashboard() {
 
 function AnimatedHours({ value }: { value: number }) {
   const mv = useMotionValue(0);
-  const display = useTransform(mv, (v) => formatHoursMinutes(v));
+  const hrs = useTransform(mv, (v) => String(Math.floor(v)));
+  const mins = useTransform(mv, (v) => {
+    const m = Math.round((v - Math.floor(v)) * 60);
+    return m === 60 ? "00" : String(m).padStart(2, "0");
+  });
   useEffect(() => {
-    const controls = animate(mv, value, {
-      duration: 1.1,
-      ease: [0.16, 1, 0.3, 1],
-    });
+    const controls = animate(mv, value, { duration: 1.1, ease: [0.16, 1, 0.3, 1] });
     return controls.stop;
   }, [value, mv]);
-  return <motion.span className="metric gold-text text-5xl">{display}</motion.span>;
+  return (
+    <span className="flex items-baseline gap-1 flex-wrap">
+      <motion.span className="metric gold-text text-5xl leading-none">{hrs}</motion.span>
+      <span className="text-2xl font-bold text-primary/80 leading-none">h</span>
+      <motion.span className="metric gold-text text-3xl leading-none">{mins}</motion.span>
+      <span className="text-lg font-bold text-primary/80 leading-none">m</span>
+    </span>
+  );
 }

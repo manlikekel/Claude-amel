@@ -316,27 +316,39 @@
     .pb-nav { padding-bottom: 2.5rem; }
   }
 
-  /* Responsive page container — mobile-first single column, widens on tablet/desktop. */
+  /* Responsive page container */
   .amel-page {
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
-    max-width: 32rem; /* mobile */
+    padding-left: 1rem;
+    padding-right: 1rem;
+    max-width: 100%; /* mobile: full width */
     position: relative;
+  }
+  @media (min-width: 640px) {
+    .amel-page {
+      max-width: 42rem; /* tablet portrait */
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
   }
   @media (min-width: 768px) {
     .amel-page {
-      max-width: 44rem; /* tablet */
+      max-width: 56rem; /* tablet landscape */
       padding-left: 2rem;
       padding-right: 2rem;
     }
   }
   @media (min-width: 1024px) {
     .amel-page {
-      max-width: 80rem; /* desktop */
+      max-width: 72rem; /* desktop */
       padding-left: 2.5rem;
       padding-right: 2.5rem;
+    }
+  }
+  @media (min-width: 1280px) {
+    .amel-page {
+      max-width: 88rem; /* wide desktop */
     }
   }
 
