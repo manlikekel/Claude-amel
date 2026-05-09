@@ -15,7 +15,8 @@ export function TabAccentSync() {
     else if (path.startsWith("/experience")) tab = "experience";
     else if (path.startsWith("/account")) tab = "more";
     else if (path.startsWith("/readiness")) tab = "readiness";
-    else if (path.startsWith("/log")) tab = "home";
+    else if (path.startsWith("/log")) tab = "log";
+    else if (path.startsWith("/logs")) tab = "logs";
     document.documentElement.setAttribute("data-tab", tab);
   }, [location.pathname]);
   return null;
