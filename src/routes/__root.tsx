@@ -13,6 +13,7 @@ import { SyncStatusPill } from "@/components/SyncStatusPill";
 import { registerServiceWorker } from "@/lib/pwa";
 import { installSyncListeners } from "@/lib/sync";
 import { getLocale, isRtl } from "@/lib/i18n";
+import { toast } from "sonner";
 
 import appCss from "../styles.css?url";
 
@@ -98,6 +99,20 @@ function RootComponent() {
       document.documentElement.lang = loc;
       document.documentElement.dir = isRtl(loc) ? "rtl" : "ltr";
     }
+  }, []);
+
+  useEffect(() => {
+    if (!navigator.onLine) {
+      toast.error("You're offline — changes will sync when reconnected");
+    }
+    const handleOffline = () => toast.error("You're offline — changes will sync when reconnected");
+    const handleOnline = () => toast.success("Back online");
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+    return () => {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    };
   }, []);
   return (
     <ThemeProvider>

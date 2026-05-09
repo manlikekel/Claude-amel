@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowDownUp, FileDown, Filter, Loader2, Search as SearchIcon, Wrench, X } from "lucide-react";
+import { ArrowDownUp, FileDown, Filter, Loader2, RefreshCw, Search as SearchIcon, Wrench, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ const PAGE_SIZE = 25;
 function LogsPage() {
   const [logs, setLogs] = useState<LogEntry[] | null>(null);
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [query, setQuery] = useState("");
   const [model, setModel] = useState("all");
   const [reg, setReg] = useState("all");
@@ -39,6 +40,18 @@ function LogsPage() {
     fetchLogs().then(setLogs).catch(() => setLogs([]));
     fetchProfile().then(setProfile).catch(() => {});
   }, []);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const freshLogs = await fetchLogs();
+      setLogs(freshLogs);
+    } catch {
+      setLogs([]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const all = logs ?? [];
 
@@ -118,11 +131,18 @@ function LogsPage() {
     <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
       <div className="amel-page pt-10 relative">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-5">
-          <p className="label-overline">Logbook</p>
-          <h1 className="page-title mt-1">All <span className="gold-text">Maintenance</span> Logs</h1>
-          <p className="page-subtitle">
-            {logs === null ? "Loading…" : `${filtered.length} log${filtered.length === 1 ? "" : "s"} · ${formatHoursMinutes(totalHours)}`}
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="label-overline">Logbook</p>
+              <h1 className="page-title mt-1">All <span className="gold-text">Maintenance</span> Logs</h1>
+              <p className="page-subtitle">
+                {logs === null ? "Loading…" : `${filtered.length} log${filtered.length === 1 ? "" : "s"} · ${formatHoursMinutes(totalHours)}`}
+              </p>
+            </div>
+            <Button variant="ghost" size="icon" onClick={handleRefresh} aria-label="Refresh logs">
+              <RefreshCw className={`h-4 w-4${refreshing ? " animate-spin" : ""}`} />
+            </Button>
+          </div>
         </motion.div>
 
         {/* Search */}

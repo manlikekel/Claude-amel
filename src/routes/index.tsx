@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { PlusCircle, Search, BarChart3, Target, ListChecks, Plane, Flame, ChevronRight } from "lucide-react";
+import { PlusCircle, Search, BarChart3, Target, ListChecks, Plane, Flame, ChevronRight, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -45,37 +45,50 @@ function Dashboard() {
   const [streak, setStreak] = useState(0);
   const [recentLogs, setRecentLogs] = useState<LogEntry[]>([]);
   const [milestone, setMilestone] = useState<{ label: string; remaining: string } | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadData = async () => {
+    const [p, all, recent] = await Promise.all([fetchProfile(), fetchLogs(), fetchRecentLogs(3)]);
+    const fid = (p.target_framework as FrameworkId) || "NCAA";
+    setFramework(fid);
+    const aircraftTypes = new Set<string>();
+    const ataChapters = new Set<string>();
+    let hours = 0;
+    for (const l of all) {
+      if (l.aircraft_model) aircraftTypes.add(l.aircraft_model.trim().toUpperCase());
+      const code = (l.ata_chapter || "").match(/\d{1,2}/)?.[0];
+      if (code) ataChapters.add(code.padStart(2, "0"));
+      hours += l.time_spent_hours || 0;
+    }
+    setTotalHours(hours);
+    setTotalJobs(all.length);
+    setStreak(computeStreak(all));
+    setRecentLogs(recent);
+    const r = computeReadiness({ totalHours: hours, totalJobs: all.length, aircraftTypes, ataChapters }, fid);
+    setReadinessPct(r.overall);
+
+    // Find closest incomplete requirement
+    const fw = FRAMEWORKS[fid];
+    const buckets = [
+      { label: "Hours needed", remaining: `${Math.max(0, fw.requiredHours - Math.round(hours))}h remaining`, pct: Math.min(100, (hours / fw.requiredHours) * 100) },
+      { label: "Jobs needed", remaining: `${Math.max(0, fw.requiredJobs - all.length)} jobs remaining`, pct: Math.min(100, (all.length / fw.requiredJobs) * 100) },
+      { label: "ATA chapters", remaining: `${Math.max(0, fw.requiredAtaCoverage - ataChapters.size)} chapters remaining`, pct: Math.min(100, (ataChapters.size / fw.requiredAtaCoverage) * 100) },
+    ].filter((b) => b.pct < 100).sort((a, b) => b.pct - a.pct);
+    setMilestone(buckets[0] ?? null);
+  };
 
   useEffect(() => {
-    Promise.all([fetchProfile(), fetchLogs(), fetchRecentLogs(3)]).then(([p, all, recent]) => {
-      const fid = (p.target_framework as FrameworkId) || "NCAA";
-      setFramework(fid);
-      const aircraftTypes = new Set<string>();
-      const ataChapters = new Set<string>();
-      let hours = 0;
-      for (const l of all) {
-        if (l.aircraft_model) aircraftTypes.add(l.aircraft_model.trim().toUpperCase());
-        const code = (l.ata_chapter || "").match(/\d{1,2}/)?.[0];
-        if (code) ataChapters.add(code.padStart(2, "0"));
-        hours += l.time_spent_hours || 0;
-      }
-      setTotalHours(hours);
-      setTotalJobs(all.length);
-      setStreak(computeStreak(all));
-      setRecentLogs(recent);
-      const r = computeReadiness({ totalHours: hours, totalJobs: all.length, aircraftTypes, ataChapters }, fid);
-      setReadinessPct(r.overall);
-
-      // Find closest incomplete requirement
-      const fw = FRAMEWORKS[fid];
-      const buckets = [
-        { label: "Hours needed", remaining: `${Math.max(0, fw.requiredHours - Math.round(hours))}h remaining`, pct: Math.min(100, (hours / fw.requiredHours) * 100) },
-        { label: "Jobs needed", remaining: `${Math.max(0, fw.requiredJobs - all.length)} jobs remaining`, pct: Math.min(100, (all.length / fw.requiredJobs) * 100) },
-        { label: "ATA chapters", remaining: `${Math.max(0, fw.requiredAtaCoverage - ataChapters.size)} chapters remaining`, pct: Math.min(100, (ataChapters.size / fw.requiredAtaCoverage) * 100) },
-      ].filter((b) => b.pct < 100).sort((a, b) => b.pct - a.pct);
-      setMilestone(buckets[0] ?? null);
-    });
+    loadData();
   }, []);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await loadData();
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background pb-nav relative overflow-hidden depth-vignette">
@@ -87,8 +100,13 @@ function Dashboard() {
             </h1>
             <p className="text-xs text-muted-foreground tracking-wide mt-0.5">Engineering memory</p>
           </div>
-          <div className="h-10 w-10 rounded-2xl glass flex items-center justify-center gold-glow-sm">
-            <Plane className="h-4 w-4 text-primary" />
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={handleRefresh} aria-label="Refresh dashboard">
+              <RefreshCw className={`h-4 w-4${refreshing ? " animate-spin" : ""}`} />
+            </Button>
+            <div className="h-10 w-10 rounded-2xl glass flex items-center justify-center gold-glow-sm">
+              <Plane className="h-4 w-4 text-primary" />
+            </div>
           </div>
         </motion.div>
 
