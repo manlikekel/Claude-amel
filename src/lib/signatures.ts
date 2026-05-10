@@ -148,7 +148,12 @@ export async function saveSignature(
     signer_licence_no: meta.signer_licence_no ?? "",
     remarks: meta.remarks ?? "",
   });
-  if (error) throw error;
+  if (error) {
+    if (error.message?.includes("log_signatures") || error.code === "42P01") {
+      throw new Error("Digital signatures aren't set up yet — please run the database migration in your Supabase SQL editor first.");
+    }
+    throw error;
+  }
   // Lock the log so it can't be edited after signing
   await supabase.from("maintenance_logs").update({ locked_at: new Date().toISOString() }).eq("id", logId);
 }
