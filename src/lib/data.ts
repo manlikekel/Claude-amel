@@ -374,13 +374,13 @@ function genId(): string {
   return "local-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
-export async function saveLog(input: LogInput): Promise<void> {
+export async function saveLog(input: LogInput): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } } as any));
   const payload = buildPayload(input);
 
   if (isOnline() && user) {
-    const { error } = await supabase.from("maintenance_logs").insert({ user_id: user.id, ...payload });
-    if (!error) { drainQueue(); return; }
+    const { data, error } = await supabase.from("maintenance_logs").insert({ user_id: user.id, ...payload }).select("id").single();
+    if (!error && data) { drainQueue(); return (data as any).id as string; }
     // fall through to offline queue on error
     console.error(error);
   }
@@ -413,6 +413,7 @@ export async function saveLog(input: LogInput): Promise<void> {
   };
   await putLocalLog(local);
   await enqueue({ op: "create", logId: id, payload });
+  return id;
 }
 
 export async function updateLog(id: string, input: LogInput): Promise<void> {

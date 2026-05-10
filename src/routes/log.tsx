@@ -368,9 +368,13 @@ function LogEntryPage() {
       if (isEdit && editId) {
         await updateLog(editId, payload);
         toast.success("Log updated");
+        navigate({ to: "/" });
       } else {
-        await saveLog(payload);
-        toast.success("Log saved");
+        const newId = await saveLog(payload);
+        toast.success("Log saved — add signatures below");
+        // Stay on log in edit mode so inspector / engineer signatures can be added immediately
+        navigate({ to: "/log", search: { id: newId } });
+        return;
       }
       // Subtle success pulse before navigating
       const root = document.getElementById("amel-app-root");
@@ -378,7 +382,6 @@ function LogEntryPage() {
         root.classList.add("animate-save-pulse");
         setTimeout(() => root.classList.remove("animate-save-pulse"), 720);
       }
-      navigate({ to: "/" });
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to save");
     } finally {

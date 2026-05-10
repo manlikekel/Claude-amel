@@ -57,8 +57,8 @@ export function InspectorSignaturePad({ open, onOpenChange, logId, onSigned }: P
       canvas.height = canvas.offsetHeight * ratio;
       canvas.getContext("2d")?.scale(ratio, ratio);
       const pad = new SignaturePad(canvas, {
-        penColor: "oklch(0.98 0 0)",
-        backgroundColor: "oklch(0.12 0.01 260 / 0)",
+        penColor: "#1e3a8a",
+        backgroundColor: "rgba(255,255,255,0)",
         minWidth: 1.5,
         maxWidth: 3,
       });
