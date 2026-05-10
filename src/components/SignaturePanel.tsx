@@ -3,17 +3,29 @@
  *
  * - Engineer signs the entry (locks it from edits).
  * - Engineer can request a co-sign from an examiner via email.
+ * - Inspector sign-offs via drawn signature pad.
  * - Verified signatures are listed below the form.
  */
 import { useEffect, useState } from "react";
-import { ShieldCheck, UserCheck, Loader2, Send, Mail } from "lucide-react";
+import { ShieldCheck, UserCheck, Loader2, Send, Mail, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { InspectorSignaturePad } from "@/components/InspectorSignaturePad";
 import { fetchSignatures, saveSignature, requestCosign, type LogSignature } from "@/lib/signatures";
 import { recordAudit } from "@/lib/audit";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
+
+interface InspectorEndorsement {
+  id: string;
+  inspector_name: string;
+  authorization_no: string;
+  signature_png: string;
+  endorsed_at: string;
+  remarks?: string;
+}
 
 export function SignaturePanel({
   logId,
@@ -27,15 +39,25 @@ export function SignaturePanel({
   signerLicenceNo?: string;
 }) {
   const [sigs, setSigs] = useState<LogSignature[]>([]);
+  const [endorsements, setEndorsements] = useState<InspectorEndorsement[]>([]);
   const [loading, setLoading] = useState(true);
   const [signing, setSigning] = useState(false);
   const [showCosign, setShowCosign] = useState(false);
   const [examinerEmail, setExaminerEmail] = useState("");
   const [requesting, setRequesting] = useState(false);
+  const [padOpen, setPadOpen] = useState(false);
 
-  useEffect(() => {
-    fetchSignatures(logId).then((d) => { setSigs(d); setLoading(false); });
-  }, [logId]);
+  const fetchAll = async () => {
+    const [sigs, { data }] = await Promise.all([
+      fetchSignatures(logId),
+      supabase.from("inspector_endorsements" as any).select("*").eq("log_id", logId).order("endorsed_at"),
+    ]);
+    setSigs(sigs);
+    setEndorsements((data as InspectorEndorsement[]) ?? []);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchAll(); }, [logId]);
 
   const sign = async (role: "engineer" | "examiner" | "qa_inspector") => {
     setSigning(true);
@@ -150,9 +172,50 @@ export function SignaturePanel({
         )}
       </div>
 
+      {/* Inspector sign-offs */}
+      <div className="mt-4 pt-3 border-t border-border/40">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5">
+            <PenLine className="h-3.5 w-3.5 text-primary" />
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Inspector Sign-offs</p>
+          </div>
+          <Button variant="action" size="sm" className="h-7 px-2.5 text-[10px] gap-1" onClick={() => setPadOpen(true)}>
+            <PenLine className="h-3 w-3" /> Add
+          </Button>
+        </div>
+
+        {endorsements.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            {endorsements.map((e) => (
+              <div key={e.id} className="rounded-lg glass-subtle p-3 flex items-center gap-3">
+                <img
+                  src={e.signature_png}
+                  alt={`${e.inspector_name} signature`}
+                  className="h-10 w-24 rounded object-contain bg-white/5 shrink-0"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-foreground truncate">{e.inspector_name}</p>
+                  <p className="text-[10px] font-mono text-muted-foreground">{e.authorization_no}</p>
+                  <p className="text-[10px] text-muted-foreground">{format(new Date(e.endorsed_at), "PP HH:mm")}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[11px] text-muted-foreground">No inspector sign-offs yet.</p>
+        )}
+      </div>
+
       <p className="mt-3 text-[10px] text-muted-foreground">
-        Signatures use ECDSA P-256 over a SHA-256 hash of the canonical entry. The public key is embedded so any third party can verify independently.
+        Engineer signatures use ECDSA P-256 over a SHA-256 hash of the canonical entry. The public key is embedded so any third party can verify independently.
       </p>
+
+      <InspectorSignaturePad
+        open={padOpen}
+        onOpenChange={setPadOpen}
+        logId={logId}
+        onSigned={fetchAll}
+      />
     </Card>
   );
 }
