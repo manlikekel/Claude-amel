@@ -75,6 +75,7 @@ function LogEntryPage() {
   const [saving, setSaving] = useState(false);
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
+  const [parsing, setParsing] = useState(false);
   const [suggestingAta, setSuggestingAta] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -180,6 +181,40 @@ function LogEntryPage() {
     }
   };
 
+
+  const parseTyped = async () => {
+    const text = form.fault_description.trim();
+    if (!text) { toast.error("Type something in the fault description first"); return; }
+    setParsing(true);
+    try {
+      const { data: parsed, error: pErr } = await supabase.functions.invoke("parse-log-voice", {
+        body: { transcript: text, chapters: ATA_CHAPTERS },
+      });
+      if (pErr) throw pErr;
+      if (parsed?.error) throw new Error(parsed.error);
+      setForm((p) => ({
+        ...p,
+        registration: parsed.registration?.toUpperCase() || p.registration,
+        aircraft_model: parsed.aircraft_model?.toUpperCase() || p.aircraft_model,
+        manufacturer: parsed.manufacturer?.toUpperCase() || p.manufacturer,
+        ata_chapter: parsed.ata_chapter || p.ata_chapter,
+        fault_description: parsed.fault_description?.toUpperCase() || p.fault_description,
+        action_taken: parsed.action_taken?.toUpperCase() || p.action_taken,
+        root_cause: parsed.root_cause?.toUpperCase() || p.root_cause,
+        system_component: parsed.system_component?.toUpperCase() || p.system_component,
+        maintenance_reference: parsed.maintenance_reference?.toUpperCase() || p.maintenance_reference,
+        symptoms: Array.isArray(parsed.symptoms) && parsed.symptoms.length > 0
+          ? Array.from(new Set([...p.symptoms, ...parsed.symptoms.map((s: string) => s.toUpperCase())]))
+          : p.symptoms,
+      }));
+      if (parsed.registration) setTimeout(() => runLookup(parsed.registration), 100);
+      toast.success("Form pre-filled from description");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Parse failed — check your connection");
+    } finally {
+      setParsing(false);
+    }
+  };
 
   // Load existing log if editing
   useEffect(() => {
@@ -645,15 +680,26 @@ function LogEntryPage() {
             <div className="relative">
               <textarea
                 value={form.fault_description}
-                placeholder="What exactly happened? (EICAS, symptoms, conditions) — or tap the mic to dictate"
+                placeholder="What exactly happened? — tap ✨ to auto-fill form, or 🎙 to dictate"
                 onChange={(e) => update("fault_description", e.target.value)}
                 rows={4}
-                className="amel-textarea pr-12 uppercase"
+                className="amel-textarea pr-20 uppercase"
               />
+              {/* AI parse typed text */}
+              <button
+                type="button"
+                onClick={parseTyped}
+                disabled={parsing || transcribing || recording || !form.fault_description.trim()}
+                title="AI: extract fault, fill action taken & all fields"
+                className="absolute right-12 top-2 inline-flex h-9 w-9 items-center justify-center rounded-lg glass-subtle text-primary hover:gold-glow-sm transition-all disabled:opacity-40"
+              >
+                {parsing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              </button>
+              {/* Voice recording */}
               <button
                 type="button"
                 onClick={recording ? stopRecording : startRecording}
-                disabled={transcribing}
+                disabled={transcribing || parsing}
                 title={recording ? "Stop recording" : "Dictate fault"}
                 className={`absolute right-2 top-2 inline-flex h-9 w-9 items-center justify-center rounded-lg transition-all ${
                   recording
@@ -666,6 +712,7 @@ function LogEntryPage() {
             </div>
             {recording && <p className="mt-1.5 text-[11px] text-destructive">● Recording… tap stop when done.</p>}
             {transcribing && <p className="mt-1.5 text-[11px] text-muted-foreground">Transcribing your voice…</p>}
+            {parsing && <p className="mt-1.5 text-[11px] text-muted-foreground">✨ Parsing — extracting fault & filling form…</p>}
           </FieldGroup>
 
           <FieldGroup label="Symptoms">
